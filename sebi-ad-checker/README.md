@@ -15,7 +15,7 @@ loaded, it uses the bundled ruleset.
 
 ## Deploy to GitHub Pages
 
-The workflow at `.github/workflows/deploy-pages.yml` builds and deploys the
+The workflow at `.github/workflows/deploy.yml` builds and deploys the
 site when changes are pushed to `main`, after the scheduled rules metadata
 workflow completes, or when manually dispatched.
 
