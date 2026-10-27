@@ -1,0 +1,42 @@
+name: Sync regulatory rules metadata
+
+on:
+  schedule:
+    - cron: '30 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-sebi-rules
+  cancel-in-progress: false
+
+jobs:
+  sync-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Inspect sources and refresh ruleset metadata
+        run: python scripts/update_rules.py
+
+      - name: Commit and push ruleset metadata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- public/rules.json; then
+            echo "No ruleset metadata changes to commit."
+            exit 0
+          fi
+          git add public/rules.json
+          git commit -m "chore(compliance): auto-sync SEBI circular updates [skip ci]"
+          git push origin HEAD:main

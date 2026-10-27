@@ -1,0 +1,75 @@
+{
+  "version": "v2026.10",
+  "lastUpdated": "October 2026",
+  "circulars": [
+    "SEBI Master Circular for Mutual Funds — Chapter 13",
+    "AMFI Circular CIR/ARN-32",
+    "SEBI (Mutual Funds) Regulations, 1996 — Sixth Schedule"
+  ],
+  "prohibitedTerms": [
+    "guaranteed",
+    "assured return",
+    "assured returns",
+    "zero risk",
+    "risk-free",
+    "risk free",
+    "100% safe",
+    "capital protection",
+    "fixed return",
+    "fixed returns",
+    "beat fd",
+    "indicative yield",
+    "promised returns"
+  ],
+  "superlatives": [
+    "best fund",
+    "no. 1 scheme",
+    "top rated fund",
+    "unbeatable fund",
+    "greatest returns"
+  ],
+  "mandatoryDisclaimers": [
+    "Mutual Fund investments are subject to market risks, read all scheme related documents carefully."
+  ],
+  "citations": [
+    {
+      "authority": "SEBI",
+      "reference": "Master Circular for Mutual Funds, Chapter 13",
+      "description": "Advertisement code and mutual fund promotional communication."
+    },
+    {
+      "authority": "AMFI",
+      "reference": "CIR/ARN-32",
+      "description": "Distributor conduct and nomenclature reference; confirm current applicability."
+    },
+    {
+      "authority": "SEBI",
+      "reference": "SEBI (Mutual Funds) Regulations, 1996, Sixth Schedule",
+      "description": "Advertising code and standard mutual fund risk-warning requirements."
+    }
+  ],
+  "metadataSources": [
+    {
+      "authority": "SEBI",
+      "url": "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=7&smid=0"
+    },
+    {
+      "authority": "AMFI",
+      "url": "https://www.amfiindia.com/"
+    }
+  ],
+  "sourceSnapshots": [
+    {
+      "authority": "SEBI",
+      "url": "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=7&smid=0",
+      "etag": null,
+      "lastModified": null
+    },
+    {
+      "authority": "AMFI",
+      "url": "https://www.amfiindia.com/",
+      "etag": null,
+      "lastModified": null
+    }
+  ]
+}
