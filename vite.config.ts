@@ -6,4 +6,10 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: '/compliance-guard/',
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    exclude: ['pdfjs-dist'],
+  },
+  worker: {
+    format: 'es',
+  },
 })

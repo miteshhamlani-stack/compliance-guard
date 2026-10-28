@@ -27,6 +27,7 @@ import {
   type IssueCategory,
   type RegulatoryRuleset,
 } from './utils/complianceEngine'
+import { MediaScanner } from './components/MediaScanner'
 import './App.css'
 
 const samples = {
@@ -141,6 +142,15 @@ function App() {
   function runCheck() {
     if (!copy.trim()) return
     setResult(scanCompliance(copy, ruleset))
+    setAuditedRuleset(ruleset)
+    setAuditedAt(new Date())
+    setCopied(false)
+    setCopyError('')
+  }
+
+  function handleScannedText(text: string) {
+    setCopy(text)
+    setResult(scanCompliance(text, ruleset))
     setAuditedRuleset(ruleset)
     setAuditedAt(new Date())
     setCopied(false)
@@ -333,6 +343,11 @@ function App() {
               </button>
             ))}
           </div>
+
+          <MediaScanner
+            issues={result?.issues ?? []}
+            onTextExtracted={handleScannedText}
+          />
 
           <label className="sr-only" htmlFor="ad-copy">
             Ad-copy to check
