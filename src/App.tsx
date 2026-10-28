@@ -30,7 +30,7 @@ import {
 import { MediaScanner } from './components/MediaScanner'
 import './App.css'
 
-type ScanMode = 'text' | 'media'
+type ScanMode = 'text' | 'document' | 'video'
 
 const samples = {
   risky: `WhatsApp exclusive! Get guaranteed returns with our SIP and beat FD rates. This is risk-free and doubles your money. Invest today!`,
@@ -360,17 +360,30 @@ function App() {
                 <small>Paste ad copy directly</small>
               </span>
             </label>
-            <label className={`scan-mode-option${scanMode === 'media' ? ' selected' : ''}`}>
+            <label className={`scan-mode-option${scanMode === 'document' ? ' selected' : ''}`}>
               <input
                 type="radio"
                 name="scan-mode"
-                value="media"
-                checked={scanMode === 'media'}
-                onChange={() => setScanMode('media')}
+                value="document"
+                checked={scanMode === 'document'}
+                onChange={() => setScanMode('document')}
               />
               <span>
                 <strong>PDF / image scan</strong>
                 <small>Extract text locally with OCR</small>
+              </span>
+            </label>
+            <label className={`scan-mode-option${scanMode === 'video' ? ' selected' : ''}`}>
+              <input
+                type="radio"
+                name="scan-mode"
+                value="video"
+                checked={scanMode === 'video'}
+                onChange={() => setScanMode('video')}
+              />
+              <span>
+                <strong>Video scan</strong>
+                <small>Scan frames and end-slate disclaimers</small>
               </span>
             </label>
           </fieldset>
@@ -392,9 +405,10 @@ function App() {
             </div>
           )}
 
-          {scanMode === 'media' && (
+          {(scanMode === 'document' || scanMode === 'video') && (
             <MediaScanner
-              key="media-scanner"
+              key={scanMode}
+              mode={scanMode}
               issues={result?.issues ?? []}
               onTextExtracted={handleScannedText}
               onVideoScanComplete={handleVideoScan}
@@ -402,11 +416,11 @@ function App() {
           )}
 
           <label className="sr-only" htmlFor="ad-copy">
-            {scanMode === 'media' ? 'Extracted document text' : 'Ad-copy to check'}
+            {scanMode !== 'text' ? 'Extracted scan text' : 'Ad-copy to check'}
           </label>
           <textarea
             id="ad-copy"
-            className={`copy-input${scanMode === 'media' ? ' extracted-copy' : ''}`}
+            className={`copy-input${scanMode !== 'text' ? ' extracted-copy' : ''}`}
             value={copy}
             onChange={(event) => {
               setCopy(event.target.value)
@@ -416,11 +430,11 @@ function App() {
               setCopied(false)
               setCopyError('')
             }}
-            placeholder={scanMode === 'media'
+            placeholder={scanMode !== 'text'
               ? 'Extracted text will appear here after scanning...'
               : `Paste your ad-copy here...\n\nExample: “Start your investment journey with a disciplined approach. Explore mutual fund options that may suit your goals.”`}
             maxLength={10000}
-            readOnly={scanMode === 'media'}
+            readOnly={scanMode !== 'text'}
           />
           <div className="input-footer">
             <span>{wordCount} words <span className="count-divider">·</span> {copy.length} / 10,000 characters</span>

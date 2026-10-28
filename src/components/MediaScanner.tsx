@@ -16,6 +16,7 @@ import { hasMultilingualDisclaimer, scanCompliance, type ComplianceIssue } from 
 import { extractVideoFrames, formatTimestamp, type VideoFrameScan } from '../utils/videoScanner'
 
 interface MediaScannerProps {
+  mode: 'document' | 'video'
   issues: ComplianceIssue[]
   onTextExtracted: (text: string) => void
   onVideoScanComplete: (text: string, issues: ComplianceIssue[]) => void
@@ -33,6 +34,7 @@ function isVideo(file: File | null): boolean {
 }
 
 export function MediaScanner({
+  mode,
   issues,
   onTextExtracted,
   onVideoScanComplete,
@@ -52,6 +54,14 @@ export function MediaScanner({
   }, [previewUrl])
 
   async function processFile(nextFile: File) {
+    if (mode === 'video' && !isVideo(nextFile)) {
+      setError('Video scan accepts only MP4, WEBM, or MOV files.')
+      return
+    }
+    if (mode === 'document' && isVideo(nextFile)) {
+      setError('PDF / image scan accepts PDF, PNG, JPG, JPEG, or WEBP files.')
+      return
+    }
     setFile(nextFile)
     setPreviewUrl((currentUrl) => {
       if (currentUrl) URL.revokeObjectURL(currentUrl)
@@ -174,14 +184,18 @@ export function MediaScanner({
         <input
           ref={inputRef}
           type="file"
-          accept={`${SUPPORTED_DOCUMENT_EXTENSIONS.join(',')},video/mp4,video/webm,video/quicktime`}
+          accept={mode === 'video'
+            ? 'video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov'
+            : SUPPORTED_DOCUMENT_EXTENSIONS.join(',')}
           onChange={handleFileChange}
           hidden
         />
         <span className="dropzone-icon"><UploadCloud size={18} /></span>
         <span className="dropzone-copy">
-          <strong>Drop a PDF, image, or video to scan</strong>
-          <small>or click to browse · PDF, PNG, JPG, WEBP, MP4, WEBM, MOV</small>
+          <strong>{mode === 'video' ? 'Drop a video to scan' : 'Drop a PDF or image to scan'}</strong>
+          <small>{mode === 'video'
+            ? 'or click to browse · MP4, WEBM, MOV'
+            : 'or click to browse · PDF, PNG, JPG, WEBP'}</small>
         </span>
         <span className="local-badge"><CheckCircle2 size={12} /> On-device</span>
       </div>
