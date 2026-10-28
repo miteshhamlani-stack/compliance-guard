@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowRight,
   BadgeCheck,
+  Ban,
   Calendar,
   Check,
   CircleAlert,
@@ -17,7 +18,9 @@ import {
   Shield,
   ShieldCheck,
   Sparkles,
+  Timer,
   TriangleAlert,
+  UserRound,
 } from 'lucide-react'
 import {
   loadRules,
@@ -219,6 +222,26 @@ function App() {
     }
   }
 
+  function quickStatus(
+    kind: 'warning' | 'mfd' | 'prohibited' | 'duration',
+  ): 'passed' | 'warning' | 'failed' {
+    if (!result) return 'passed'
+    const titles: Record<Exclude<typeof kind, 'prohibited'>, string[]> = {
+      warning: ['standard-disclaimer', 'video-disclaimer-duration', 'audio-disclaimer-missing'],
+      mfd: ['entity-disclosure', 'video-mfd-tagline'],
+      duration: ['video-disclaimer-duration'],
+    }
+    if (kind === 'prohibited') {
+      return criticalCount > 0 ? 'failed' : warningCount > 0 ? 'warning' : 'passed'
+    }
+    const matching = result.issues.filter((issue) => titles[kind].includes(issue.id))
+    return matching.some((issue) => issue.severity === 'critical')
+      ? 'failed'
+      : matching.length > 0
+        ? 'warning'
+        : 'passed'
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -304,13 +327,13 @@ function App() {
             MUTUAL FUND MARKETING &amp; COMPLIANCE
           </div>
           <h1>
-            Make every message
+            Compliance Guard
             <br />
-            <span>market-ready.</span>
+            <span>market-ready audits.</span>
           </h1>
           <p>
-            Review mutual fund marketing for common regulatory red flags before
-            sharing it with investors.
+            Automated Multilingual Compliance Audit for Financial Creatives &amp;
+            Video Reels.
           </p>
           <div className="hero-note">
             <span className="privacy-dot" />
@@ -324,7 +347,7 @@ function App() {
             <div className="section-icon"><FileCheck2 size={18} /></div>
             <div>
               <h2>Review your ad-copy</h2>
-              <p>Paste a WhatsApp broadcast, social post or email newsletter.</p>
+              <p>Audit financial creatives, campaign copy, PDFs, images, and video reels.</p>
             </div>
             {copy && (
               <button
@@ -481,10 +504,35 @@ function App() {
                 </button>
                 <button className="scan-again print-button screen-only" type="button" onClick={printAudit}>
                   <Printer size={14} />
-                  Print / Save Audit Summary
+                  Export Audit Certificate (PDF)
                 </button>
               </div>
             </div>
+
+            <section className="executive-scorecard" aria-label="Executive compliance scorecard">
+              <div className={`score-badge score-badge-${scoreTone}`}>
+                <span>COMPLIANCE SCORE</span>
+                <strong>{result.score}<small>/100</small></strong>
+                <b>{statusLabel(result.score)}</b>
+              </div>
+              <div className="quick-status-grid">
+                {[
+                  { key: 'warning' as const, label: 'Mandatory risk warning', icon: ShieldCheck },
+                  { key: 'mfd' as const, label: 'MFD identification', icon: UserRound },
+                  { key: 'prohibited' as const, label: 'Prohibited terms', icon: Ban },
+                  { key: 'duration' as const, label: 'Font / duration compliance', icon: Timer },
+                ].map(({ key, label, icon: Icon }) => {
+                  const state = quickStatus(key)
+                  return (
+                    <div className={`quick-status quick-status-${state}`} key={key}>
+                      <Icon size={15} />
+                      <span>{label}</span>
+                      <strong>{state === 'passed' ? 'Passed' : state === 'warning' ? 'Review' : 'Failed'}</strong>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
 
             <div className="summary-grid">
               <div className={`score-card tone-${scoreTone}`}>

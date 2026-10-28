@@ -44,6 +44,7 @@ export function MediaScanner({
   onVideoScanComplete,
 }: MediaScannerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [isDragging, setIsDragging] = useState(false)
@@ -52,6 +53,7 @@ export function MediaScanner({
   const [videoFrames, setVideoFrames] = useState<VideoVisualOccurrence[]>([])
   const [audioTranscript, setAudioTranscript] = useState<VideoAudioTranscript | null>(null)
   const [transcriptTab, setTranscriptTab] = useState<'visual' | 'audio'>('visual')
+  const [videoDuration, setVideoDuration] = useState(0)
 
   useEffect(() => {
     return () => {
@@ -76,6 +78,7 @@ export function MediaScanner({
     setError('')
     setVideoFrames([])
     setAudioTranscript(null)
+    setVideoDuration(0)
     setProgress({ percentage: 0, status: 'Reading file...' })
 
     try {
@@ -93,6 +96,7 @@ export function MediaScanner({
           : ''
         setVideoFrames(scan.visualOccurrences)
         setAudioTranscript(scan.audioTranscript)
+        setVideoDuration(scan.duration)
         onVideoScanComplete(`${aggregateText}${audioText}`, report.issues)
         setProgress({ percentage: 100, status: 'Video scan complete' })
         return
@@ -166,11 +170,18 @@ export function MediaScanner({
         <span className="dropzone-copy">
           <strong>{mode === 'video' ? 'Drop a video to scan' : 'Drop a PDF or image to scan'}</strong>
           <small>{mode === 'video'
-            ? 'or click to browse · MP4, WEBM, MOV'
-            : 'or click to browse · PDF, PNG, JPG, WEBP'}</small>
+            ? 'MP4 · MOV · WEBM · visual disclaimers ≥ 5s + audio voiceover'
+            : 'PDF · PNG · JPG · JPEG · WEBP · local OCR'}</small>
         </span>
         <span className="local-badge"><CheckCircle2 size={12} /> On-device</span>
       </div>
+      {(mode === 'video' || mode === 'document') && (
+        <div className="language-badges" aria-label="Automatic OCR languages">
+          {['English', 'हिन्दी', 'मराठी', 'ગુજરાતી', 'বাংলা', 'தமிழ்', 'संस्कृत'].map((language) => (
+            <span key={language}>{language}</span>
+          ))}
+        </div>
+      )}
       {isVideo(file) && videoFrames.length > 0 && (
         <div className="video-timeline" aria-label="Video scan timeline">
           <div className="preview-heading"><FileText size={14} /><span>Scan timeline</span></div>
@@ -181,13 +192,22 @@ export function MediaScanner({
                 (issue) => issue.severity !== 'info',
               )
               return (
-                <span
+                <button
+                  type="button"
                   className={`timeline-badge ${frameHasIssue ? 'failed' : frameHasDisclaimer ? 'passed' : 'neutral'}`}
                   key={frame.startTime}
                   title={frame.text || 'No text detected'}
+                  data-time={formatTimestamp(frame.startTime)}
+                  style={{
+                    left: `${videoDuration > 0 ? (frame.startTime / videoDuration) * 100 : 0}%`,
+                    width: `${videoDuration > 0 ? Math.max(2, (frame.durationOnScreen / videoDuration) * 100) : 2}%`,
+                  }}
+                  onClick={() => {
+                    if (videoRef.current) videoRef.current.currentTime = frame.startTime
+                  }}
                 >
                   {formatTimestamp(frame.startTime)}
-                </span>
+                </button>
               )
             })}
           </div>
@@ -223,7 +243,7 @@ export function MediaScanner({
             {isImage(file) ? (
               <img src={previewUrl} alt={`Preview of ${file.name}`} />
             ) : isVideo(file) ? (
-              <video controls src={previewUrl} aria-label={`Preview of ${file.name}`} />
+              <video ref={videoRef} controls src={previewUrl} aria-label={`Preview of ${file.name}`} />
             ) : (
               <iframe title={`Preview of ${file.name}`} src={previewUrl} />
             )}
