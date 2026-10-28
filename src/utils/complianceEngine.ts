@@ -197,6 +197,18 @@ const citations = {
     'ASCI Code for Self-Regulation of Advertising Content in India, Chapter I (truthful and honest representation).',
 } as const
 
+const multilingualDisclaimerPatterns: RegExp[] = [
+  /Mutual\s*Fund\s*investments\s*are\s*subject\s*to\s*market\s*risks/i,
+  /(म्यूचुअल|म्युच्युअल)\s*फंड\s*निवेश.*जोखिम|बाजार\s*जोखिम/i,
+  /મ્યુચ્યુઅલ\s*ફંડ\s*રોકાણ.*જોખમો/i,
+  /মিউচুয়াল\s*ফান্ড\s*বিনিয়োগ.*ঝুঁকি/i,
+  /மியூச்சுவல்\s*ஃபண்ட்\s*முதலீடுகள்.*சந்தை\s*அபாயங்களுக்கு/i,
+]
+
+function hasMultilingualDisclaimer(text: string): boolean {
+  return multilingualDisclaimerPatterns.some((pattern) => pattern.test(text))
+}
+
 const advisoryTitlePhrases = [
   'financial advisor',
   'financial adviser',
@@ -408,8 +420,8 @@ function buildRewrite(
       `Performance disclosure to complete before use: add ${performanceRequirements.join(' and ')}. Do not publish until the figures and source are verified.`,
     )
   }
-  for (const disclaimer of rules.mandatoryDisclaimers) {
-    if (!source.includes(disclaimer)) disclosures.push(disclaimer)
+  if (!hasMultilingualDisclaimer(source)) {
+    disclosures.push(...rules.mandatoryDisclaimers)
   }
   if (!hasEntity) {
     disclosures.push(
@@ -558,10 +570,8 @@ export function scanCompliance(
   }
 
   totalChecks += 1
-  const missingDisclaimers = rules.mandatoryDisclaimers.filter(
-    (disclaimer) => !text.includes(disclaimer),
-  )
-  if (missingDisclaimers.length > 0) {
+  const hasDisclaimer = hasMultilingualDisclaimer(text)
+  if (!hasDisclaimer) {
     failedChecks += 1
     issues.push({
       id: 'standard-disclaimer',
@@ -569,8 +579,8 @@ export function scanCompliance(
       severity: 'warning',
       regulatoryClass: 'disclosure-best-practice',
       title: 'Exact statutory risk warning missing',
-      detail: `Required statutory warning${missingDisclaimers.length > 1 ? 's were' : ' was'} not found verbatim in the pasted copy.`,
-      recommendation: `Insert exactly: ${missingDisclaimers.map((disclaimer) => `“${disclaimer}”`).join(' ')}`,
+      detail: 'No supported English, Hindi, Marathi, Gujarati, Bengali, or Tamil statutory risk warning was detected.',
+      recommendation: `Insert the applicable statutory warning, for example: “${rules.mandatoryDisclaimers[0]}”`,
       citation: citations.disclaimer,
     })
   } else {

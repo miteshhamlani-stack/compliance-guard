@@ -10,7 +10,6 @@ import {
 import {
   scanDocument,
   SUPPORTED_DOCUMENT_EXTENSIONS,
-  type DocumentScanProgress,
 } from '../utils/documentScanner'
 import type { ComplianceIssue } from '../utils/complianceEngine'
 
@@ -31,7 +30,7 @@ export function MediaScanner({
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [isDragging, setIsDragging] = useState(false)
-  const [progress, setProgress] = useState<DocumentScanProgress | null>(null)
+  const [progress, setProgress] = useState<{ percentage: number; status: string } | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -47,18 +46,21 @@ export function MediaScanner({
       return URL.createObjectURL(nextFile)
     })
     setError('')
-    setProgress({ stage: 'reading-pdf', percentage: 0, message: 'Preparing file...' })
+    setProgress({ percentage: 0, status: 'Reading file...' })
 
     try {
-      const result = await scanDocument(nextFile, setProgress)
+      const result = await scanDocument(nextFile, (percentage, status) => {
+        setProgress({ percentage, status })
+      })
       if (!result.text.trim()) {
         throw new Error('No readable text was detected in this document.')
       }
       onTextExtracted(result.text)
       setProgress({
-        stage: result.usedOcr ? 'ocr' : 'reading-pdf',
         percentage: 100,
-        message: result.usedOcr ? 'OCR complete' : 'PDF reading complete',
+        status: result.usedOcr
+          ? `OCR complete · ${result.detectedScript}`
+          : 'PDF reading complete',
       })
     } catch (scanError) {
       setProgress(null)
@@ -122,7 +124,7 @@ export function MediaScanner({
           {progress.percentage < 100
             ? <LoaderCircle className="spin" size={15} />
             : <CheckCircle2 size={15} />}
-          <span>{progress.message}</span>
+          <span>{progress.status}</span>
           <div className="progress-track" role="progressbar" aria-valuenow={progress.percentage} aria-valuemin={0} aria-valuemax={100}>
             <span style={{ width: `${progress.percentage}%` }} />
           </div>
