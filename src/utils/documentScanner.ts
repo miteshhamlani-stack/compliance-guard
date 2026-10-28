@@ -23,7 +23,10 @@ export interface DocumentScanResult {
 type ProgressCallback = (percentage: number, status: string) => void
 
 const minimumPdfTextLength = 50
-const tessdataPath = 'https://tessdata.projectnaptha.com/4.0.0_fast'
+export const TESSDATA_FAST_PATH =
+  'https://tessdata.projectnaptha.com/4.0.0_fast'
+export const SANSKRIT_TRAINEDDATA_URL =
+  `${TESSDATA_FAST_PATH}/san.traineddata.gz`
 const tessdataCachePath = 'compliance-guard-tessdata'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -54,7 +57,7 @@ function createTesseractWorker(
   onProgress: ProgressCallback | undefined,
 ): Promise<Worker> {
   return createWorker(languages, 1, {
-    langPath: tessdataPath,
+    langPath: TESSDATA_FAST_PATH,
     cachePath: tessdataCachePath,
     cacheMethod: 'write',
     logger: (message) => {
@@ -75,7 +78,7 @@ function languagesForScript(script: string | null): {
 } {
   switch (script?.toLowerCase()) {
     case 'devanagari':
-      return { detectedScript: 'Devanagari', languages: 'eng+hin+mar' }
+      return { detectedScript: 'Devanagari', languages: 'eng+hin+mar+san' }
     case 'gujarati':
       return { detectedScript: 'Gujarati', languages: 'eng+guj' }
     case 'bengali':
@@ -89,13 +92,63 @@ function languagesForScript(script: string | null): {
   }
 }
 
+export function getOcrLanguagesForScript(script: string | null): string {
+  return languagesForScript(script).languages
+}
+
+export function normalizeOcrText(text: string): string {
+  return text.normalize('NFC').trim()
+}
+
+async function preprocessForOcr(
+  image: File | HTMLCanvasElement,
+): Promise<HTMLCanvasElement> {
+  let bitmap: ImageBitmap | null = null
+  let source: ImageBitmap | HTMLCanvasElement
+  if (image instanceof File) {
+    bitmap = await createImageBitmap(image)
+    source = bitmap
+  } else {
+    source = image
+  }
+  const scale = 1.75
+  const canvas = globalThis.document.createElement('canvas')
+  canvas.width = Math.ceil(source.width * scale)
+  canvas.height = Math.ceil(source.height * scale)
+  const context = canvas.getContext('2d', { willReadFrequently: true })
+
+  if (!context) {
+    bitmap?.close()
+    throw new Error('Could not create an image canvas for OCR preprocessing.')
+  }
+
+  context.imageSmoothingEnabled = true
+  context.imageSmoothingQuality = 'high'
+  context.filter = 'grayscale(1) contrast(1.25)'
+  context.drawImage(source, 0, 0, canvas.width, canvas.height)
+  context.filter = 'none'
+
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height)
+  for (let index = 0; index < pixels.data.length; index += 4) {
+    const value = pixels.data[index]
+    const enhanced = Math.max(0, Math.min(255, (value - 128) * 1.18 + 128))
+    pixels.data[index] = enhanced
+    pixels.data[index + 1] = enhanced
+    pixels.data[index + 2] = enhanced
+  }
+  context.putImageData(pixels, 0, 0)
+
+  bitmap?.close()
+  return canvas
+}
+
 async function detectScript(
   image: File | HTMLCanvasElement,
   onProgress: ProgressCallback | undefined,
 ): Promise<{ detectedScript: string; languages: string }> {
   report(onProgress, 8, 'Detecting script...')
   const worker = await createWorker('osd', 0, {
-    langPath: tessdataPath,
+    langPath: TESSDATA_FAST_PATH,
     cachePath: tessdataCachePath,
     cacheMethod: 'write',
   })
@@ -121,7 +174,7 @@ async function recognize(
   const worker = await createTesseractWorker(languages, onProgress)
   try {
     const result = await worker.recognize(image)
-    return result.data.text.trim()
+    return normalizeOcrText(result.data.text)
   } finally {
     await worker.terminate()
   }
@@ -142,7 +195,8 @@ async function extractPdfText(
         content.items
           .map((item) => ('str' in item ? item.str : ''))
           .join(' ')
-          .trim(),
+          .trim()
+          .normalize('NFC'),
       )
       report(
         onProgress,
@@ -181,18 +235,23 @@ async function recognizePdfPages(
   const document = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise
 
   try {
-    const sampleCanvas = await renderPdfPage(document, 1)
+    const sampleCanvas = await preprocessForOcr(
+      await renderPdfPage(document, 1),
+    )
     const selection = await detectScript(sampleCanvas, onProgress)
     const worker = await createTesseractWorker(selection.languages, onProgress)
     const pageTexts: string[] = []
 
     try {
       for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-        const canvas = pageNumber === 1
+        const renderedCanvas = pageNumber === 1
           ? sampleCanvas
           : await renderPdfPage(document, pageNumber)
+        const canvas = pageNumber === 1
+          ? renderedCanvas
+          : await preprocessForOcr(renderedCanvas)
         const result = await worker.recognize(canvas)
-        pageTexts.push(result.data.text.trim())
+        pageTexts.push(normalizeOcrText(result.data.text))
         report(
           onProgress,
           10 + (pageNumber / pageCount) * 90,
@@ -221,9 +280,10 @@ export async function scanDocument(
   }
 
   if (extension !== '.pdf') {
-    const selection = await detectScript(file, onProgress)
+    const preprocessedImage = await preprocessForOcr(file)
+    const selection = await detectScript(preprocessedImage, onProgress)
     return {
-      text: await recognize(file, selection.languages, onProgress),
+      text: await recognize(preprocessedImage, selection.languages, onProgress),
       usedOcr: true,
       pageCount: 1,
       ...selection,
