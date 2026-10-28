@@ -1,14 +1,105 @@
+import { scanImageCanvas } from './documentScanner'
+import type {
+  VideoAudioTranscript,
+  VideoVisualOccurrence,
+} from './videoComplianceValidator'
+
 export interface VideoFrame {
   timestamp: number
+  startTime: number
+  endTime: number
+  durationOnScreen: number
   canvas: HTMLCanvasElement
+}
+
+async function extractAudio(
+  file: File,
+  onProgress?: ProgressCallback,
+): Promise<Float32Array | null> {
+  onProgress?.(50, 'Extracting audio...')
+  const AudioContextConstructor = globalThis.AudioContext
+  const OfflineAudioContextConstructor = globalThis.OfflineAudioContext
+  if (!AudioContextConstructor || !OfflineAudioContextConstructor) return null
+
+  try {
+    const context = new AudioContextConstructor()
+    const decoded = await context.decodeAudioData(await file.arrayBuffer())
+    await context.close()
+    const frameCount = Math.ceil(decoded.duration * 16_000)
+    const offline = new OfflineAudioContextConstructor(1, frameCount, 16_000)
+    const source = offline.createBufferSource()
+    source.buffer = decoded
+    source.connect(offline.destination)
+    source.start()
+    const rendered = await offline.startRendering()
+    const audio = rendered.getChannelData(0)
+    onProgress?.(58, 'Audio extracted at 16 kHz mono.')
+    return audio
+  } catch {
+    return null
+  }
+}
+
+interface WhisperChunk {
+  timestamp?: [number, number]
+  text: string
+}
+
+interface WhisperResult {
+  text: string
+  chunks?: WhisperChunk[]
+}
+
+async function transcribeAudio(
+  audio: Float32Array | null,
+  onProgress?: ProgressCallback,
+): Promise<VideoAudioTranscript | null> {
+  if (!audio || audio.length === 0) return null
+  onProgress?.(60, 'Transcribing voiceover...')
+  const { pipeline } = await import('@xenova/transformers')
+  const recognizer = await pipeline(
+    'automatic-speech-recognition',
+    'Xenova/whisper-tiny',
+    {
+      quantized: true,
+      progress_callback: (progress: { progress?: number }) => {
+        if (typeof progress.progress === 'number') {
+          onProgress?.(60 + Math.round(progress.progress * 0.2), 'Transcribing voiceover...')
+        }
+      },
+    },
+  )
+  const result = await recognizer(audio, {
+    return_timestamps: true,
+  }) as WhisperResult
+  const chunks = result.chunks ?? []
+  return {
+    text: result.text.trim(),
+    startTime: chunks[0]?.timestamp?.[0],
+    endTime: chunks.at(-1)?.timestamp?.[1],
+    segments: chunks.flatMap((chunk) => (
+      chunk.timestamp
+        ? [{ startTime: chunk.timestamp[0], endTime: chunk.timestamp[1], text: chunk.text }]
+        : []
+    )),
+  }
 }
 
 export interface VideoFrameScan {
   timestamp: number
   text: string
+  startTime: number
+  endTime: number
+  durationOnScreen: number
 }
 
 type ProgressCallback = (percentage: number, status: string) => void
+
+export interface VideoScanResult {
+  duration: number
+  visualOccurrences: VideoVisualOccurrence[]
+  audioTranscript: VideoAudioTranscript | null
+}
 
 function formatTimestamp(seconds: number): string {
   const minutes = Math.floor(seconds / 60)
@@ -87,7 +178,13 @@ export async function extractVideoFrames(
       const context = canvas.getContext('2d')
       if (!context) throw new Error('Could not create a canvas for video scanning.')
       context.drawImage(video, 0, 0, canvas.width, canvas.height)
-      frames.push({ timestamp, canvas })
+      frames.push({
+        timestamp,
+        startTime: timestamp,
+        endTime: Math.min(video.duration, timestamp + 2),
+        durationOnScreen: Math.min(2, video.duration - timestamp),
+        canvas,
+      })
       onProgress?.(
         Math.round(((index + 1) / sampleTimes.length) * 45),
         `Analyzing video frame at ${formatTimestamp(timestamp)}...`,
@@ -99,6 +196,34 @@ export async function extractVideoFrames(
     video.removeAttribute('src')
     video.load()
     URL.revokeObjectURL(objectUrl)
+  }
+}
+
+export async function scanVideo(
+  file: File,
+  onProgress?: ProgressCallback,
+): Promise<VideoScanResult> {
+  const extracted = await extractVideoFrames(file, onProgress)
+  const visualOccurrences: VideoVisualOccurrence[] = []
+  for (const [index, frame] of extracted.frames.entries()) {
+    const result = await scanImageCanvas(frame.canvas, (percentage, status) => {
+      const progress = 20 + ((index + percentage / 100) / extracted.frames.length) * 30
+      onProgress?.(Math.round(progress), status)
+    })
+    visualOccurrences.push({
+      startTime: frame.startTime,
+      endTime: frame.endTime,
+      durationOnScreen: frame.durationOnScreen,
+      text: result.text,
+    })
+  }
+  const audio = await extractAudio(file, onProgress)
+  const audioTranscript = await transcribeAudio(audio, onProgress)
+  onProgress?.(100, 'Auditing frames...')
+  return {
+    duration: extracted.duration,
+    visualOccurrences,
+    audioTranscript,
   }
 }
 

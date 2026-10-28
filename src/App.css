@@ -595,6 +595,50 @@ main {
   font-weight: 650;
 }
 
+.transcript-panel {
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e7ebf2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.transcript-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  border-bottom: 1px solid #edf1f5;
+  background: #fafbfe;
+}
+
+.transcript-tabs button {
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  color: #7b8798;
+  background: transparent;
+  font: inherit;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.transcript-tabs button.active {
+  color: #4258b7;
+  background: #edf0fd;
+  font-weight: 700;
+}
+
+.transcript-text {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  color: #526174;
+  font: 10px/1.6 Inter, ui-sans-serif, system-ui, sans-serif;
+  white-space: pre-wrap;
+}
+
 .copy-input {
   width: 100%;
   min-height: 184px;

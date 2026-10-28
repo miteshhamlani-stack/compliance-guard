@@ -9,11 +9,15 @@ import {
 } from 'lucide-react'
 import {
   scanDocument,
-  scanImageCanvas,
   SUPPORTED_DOCUMENT_EXTENSIONS,
 } from '../utils/documentScanner'
 import { hasMultilingualDisclaimer, scanCompliance, type ComplianceIssue } from '../utils/complianceEngine'
-import { extractVideoFrames, formatTimestamp, type VideoFrameScan } from '../utils/videoScanner'
+import { formatTimestamp, scanVideo } from '../utils/videoScanner'
+import {
+  validateVideoCompliance,
+  type VideoAudioTranscript,
+  type VideoVisualOccurrence,
+} from '../utils/videoComplianceValidator'
 
 interface MediaScannerProps {
   mode: 'document' | 'video'
@@ -45,7 +49,9 @@ export function MediaScanner({
   const [isDragging, setIsDragging] = useState(false)
   const [progress, setProgress] = useState<{ percentage: number; status: string } | null>(null)
   const [error, setError] = useState('')
-  const [videoFrames, setVideoFrames] = useState<VideoFrameScan[]>([])
+  const [videoFrames, setVideoFrames] = useState<VideoVisualOccurrence[]>([])
+  const [audioTranscript, setAudioTranscript] = useState<VideoAudioTranscript | null>(null)
+  const [transcriptTab, setTranscriptTab] = useState<'visual' | 'audio'>('visual')
 
   useEffect(() => {
     return () => {
@@ -69,59 +75,25 @@ export function MediaScanner({
     })
     setError('')
     setVideoFrames([])
+    setAudioTranscript(null)
     setProgress({ percentage: 0, status: 'Reading file...' })
 
     try {
       if (isVideo(nextFile)) {
-        const extracted = await extractVideoFrames(nextFile, (percentage, status) => {
+        const scan = await scanVideo(nextFile, (percentage, status) => {
           setProgress({ percentage, status })
         })
-        const frameScans: VideoFrameScan[] = []
-        for (const [index, frame] of extracted.frames.entries()) {
-          const result = await scanImageCanvas(frame.canvas, (percentage, status) => {
-            const overall = 45 + ((index + percentage / 100) / extracted.frames.length) * 50
-            setProgress({
-              percentage: Math.round(overall),
-              status: `${status} Frame ${index + 1} of ${extracted.frames.length}`,
-            })
-          })
-          frameScans.push({ timestamp: frame.timestamp, text: result.text })
-        }
-
-        const aggregateText = frameScans
+        const report = validateVideoCompliance(scan)
+        const aggregateText = scan.visualOccurrences
           .filter((frame) => frame.text)
-          .map((frame) => `[${formatTimestamp(frame.timestamp)}]\n${frame.text}`)
+          .map((frame) => `[${formatTimestamp(frame.startTime)}]\n${frame.text}`)
           .join('\n\n')
-        const disclaimerFrames = frameScans.filter((frame) =>
-          hasMultilingualDisclaimer(frame.text),
-        )
-        const videoIssues: ComplianceIssue[] = []
-        const frameIssues = frameScans.flatMap((frame) =>
-          scanCompliance(frame.text).issues.filter((issue) => issue.severity !== 'info').map((issue) => ({
-            ...issue,
-            id: `video-${formatTimestamp(frame.timestamp)}-${issue.id}`,
-            title: `${issue.title} · ${formatTimestamp(frame.timestamp)}`,
-          })),
-        )
-        videoIssues.push(...frameIssues)
-        const disclaimerDuration = disclaimerFrames.length > 1
-          ? Math.max(...disclaimerFrames.map((frame) => frame.timestamp)) -
-            Math.min(...disclaimerFrames.map((frame) => frame.timestamp))
-          : 0
-        if (disclaimerFrames.length > 0 && disclaimerDuration < 3) {
-          videoIssues.push({
-            id: 'video-disclaimer-duration',
-            category: 'missing-disclaimer',
-            severity: 'warning',
-            regulatoryClass: 'disclosure-best-practice',
-            title: 'Video risk disclaimer shown for under 3 seconds',
-            detail: `The disclaimer was detected around ${disclaimerFrames.map((frame) => formatTimestamp(frame.timestamp)).join(', ')}.`,
-            recommendation: 'Keep the statutory risk warning visible and legible for the required duration in the final video.',
-            citation: 'SEBI Master Circular for Mutual Funds, Clause 13.1 and Sixth Schedule.',
-          })
-        }
-        setVideoFrames(frameScans)
-        onVideoScanComplete(aggregateText, videoIssues)
+        const audioText = scan.audioTranscript?.text
+          ? `\n\n[AUDIO VOICEOVER]\n${scan.audioTranscript.text}`
+          : ''
+        setVideoFrames(scan.visualOccurrences)
+        setAudioTranscript(scan.audioTranscript)
+        onVideoScanComplete(`${aggregateText}${audioText}`, report.issues)
         setProgress({ percentage: 100, status: 'Video scan complete' })
         return
       }
@@ -211,10 +183,10 @@ export function MediaScanner({
               return (
                 <span
                   className={`timeline-badge ${frameHasIssue ? 'failed' : frameHasDisclaimer ? 'passed' : 'neutral'}`}
-                  key={frame.timestamp}
+                  key={frame.startTime}
                   title={frame.text || 'No text detected'}
                 >
-                  {formatTimestamp(frame.timestamp)}
+                  {formatTimestamp(frame.startTime)}
                 </span>
               )
             })}
@@ -275,6 +247,40 @@ export function MediaScanner({
               </ul>
             )}
           </div>
+          {isVideo(file) && (
+            <div className="transcript-panel">
+              <div className="transcript-tabs" role="tablist" aria-label="Video transcripts">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={transcriptTab === 'visual'}
+                  className={transcriptTab === 'visual' ? 'active' : ''}
+                  onClick={() => setTranscriptTab('visual')}
+                >
+                  Visual Frame Transcript
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={transcriptTab === 'audio'}
+                  className={transcriptTab === 'audio' ? 'active' : ''}
+                  onClick={() => setTranscriptTab('audio')}
+                >
+                  Audio Voiceover Transcript
+                </button>
+              </div>
+              <pre className="transcript-text">
+                {transcriptTab === 'visual'
+                  ? videoFrames
+                    .filter((frame) => frame.text)
+                    .map((frame) => `[${formatTimestamp(frame.startTime)}-${formatTimestamp(frame.endTime)}]\n${frame.text}`)
+                    .join('\n\n') || 'No visual text detected.'
+                  : audioTranscript?.segments?.map((segment) =>
+                    `[${formatTimestamp(segment.startTime)}-${formatTimestamp(segment.endTime)}] ${segment.text}`,
+                  ).join('\n') || audioTranscript?.text || 'No audio voiceover detected.'}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
