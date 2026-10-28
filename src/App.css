@@ -502,12 +502,54 @@ main {
 }
 
 .document-preview img,
-.document-preview iframe {
+.document-preview iframe,
+.document-preview video {
   display: block;
   width: 100%;
   height: 185px;
   border: 0;
   object-fit: contain;
+  background: #f8fafc;
+}
+
+.video-timeline {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  border: 1px solid #e7ebf2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.timeline-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+}
+
+.timeline-badge {
+  padding: 4px 7px;
+  border: 1px solid;
+  border-radius: 5px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.timeline-badge.passed {
+  color: #26734a;
+  border-color: #cfe8d8;
+  background: #eff8f2;
+}
+
+.timeline-badge.failed {
+  color: #a63e3e;
+  border-color: #f0cccc;
+  background: #fff1f1;
+}
+
+.timeline-badge.neutral {
+  color: #64748b;
+  border-color: #dbe3ec;
   background: #f8fafc;
 }
 

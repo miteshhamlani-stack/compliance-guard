@@ -180,6 +180,20 @@ async function recognize(
   }
 }
 
+export async function scanImageCanvas(
+  canvas: HTMLCanvasElement,
+  onProgress?: ProgressCallback,
+): Promise<DocumentScanResult> {
+  const preprocessedCanvas = await preprocessForOcr(canvas)
+  const selection = await detectScript(preprocessedCanvas, onProgress)
+  return {
+    text: await recognize(preprocessedCanvas, selection.languages, onProgress),
+    usedOcr: true,
+    pageCount: 1,
+    ...selection,
+  }
+}
+
 async function extractPdfText(
   file: File,
   onProgress: ProgressCallback | undefined,

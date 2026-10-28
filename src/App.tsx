@@ -160,6 +160,19 @@ function App() {
     setCopyError('')
   }
 
+  function handleVideoScan(text: string, detectedIssues: ComplianceIssue[]) {
+    const scanned = scanCompliance(text, ruleset)
+    setCopy(text)
+    setResult({
+      ...scanned,
+      issues: [...scanned.issues, ...detectedIssues],
+    })
+    setAuditedRuleset(ruleset)
+    setAuditedAt(new Date())
+    setCopied(false)
+    setCopyError('')
+  }
+
   function selectSample(key: keyof typeof samples) {
     setCopy(samples[key])
     setResult(null)
@@ -384,6 +397,7 @@ function App() {
               key="media-scanner"
               issues={result?.issues ?? []}
               onTextExtracted={handleScannedText}
+              onVideoScanComplete={handleVideoScan}
             />
           )}
 

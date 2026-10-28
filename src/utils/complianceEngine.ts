@@ -205,7 +205,7 @@ const multilingualDisclaimerPatterns: RegExp[] = [
   /மியூச்சுவல்\s*ஃபண்ட்\s*முதலீடுகள்.*சந்தை\s*அபாயங்களுக்கு/i,
 ]
 
-function hasMultilingualDisclaimer(text: string): boolean {
+export function hasMultilingualDisclaimer(text: string): boolean {
   return multilingualDisclaimerPatterns.some((pattern) => pattern.test(text))
 }
 

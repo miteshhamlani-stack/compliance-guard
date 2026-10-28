@@ -9,22 +9,33 @@ import {
 } from 'lucide-react'
 import {
   scanDocument,
+  scanImageCanvas,
   SUPPORTED_DOCUMENT_EXTENSIONS,
 } from '../utils/documentScanner'
-import type { ComplianceIssue } from '../utils/complianceEngine'
+import { hasMultilingualDisclaimer, scanCompliance, type ComplianceIssue } from '../utils/complianceEngine'
+import { extractVideoFrames, formatTimestamp, type VideoFrameScan } from '../utils/videoScanner'
 
 interface MediaScannerProps {
   issues: ComplianceIssue[]
   onTextExtracted: (text: string) => void
+  onVideoScanComplete: (text: string, issues: ComplianceIssue[]) => void
 }
 
 function isImage(file: File | null): boolean {
   return file?.type.startsWith('image/') ?? false
 }
 
+function isVideo(file: File | null): boolean {
+  return (
+    file?.type.startsWith('video/') ||
+    /\.(mp4|webm|mov)$/i.test(file?.name ?? '')
+  )
+}
+
 export function MediaScanner({
   issues,
   onTextExtracted,
+  onVideoScanComplete,
 }: MediaScannerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -32,6 +43,7 @@ export function MediaScanner({
   const [isDragging, setIsDragging] = useState(false)
   const [progress, setProgress] = useState<{ percentage: number; status: string } | null>(null)
   const [error, setError] = useState('')
+  const [videoFrames, setVideoFrames] = useState<VideoFrameScan[]>([])
 
   useEffect(() => {
     return () => {
@@ -46,9 +58,64 @@ export function MediaScanner({
       return URL.createObjectURL(nextFile)
     })
     setError('')
+    setVideoFrames([])
     setProgress({ percentage: 0, status: 'Reading file...' })
 
     try {
+      if (isVideo(nextFile)) {
+        const extracted = await extractVideoFrames(nextFile, (percentage, status) => {
+          setProgress({ percentage, status })
+        })
+        const frameScans: VideoFrameScan[] = []
+        for (const [index, frame] of extracted.frames.entries()) {
+          const result = await scanImageCanvas(frame.canvas, (percentage, status) => {
+            const overall = 45 + ((index + percentage / 100) / extracted.frames.length) * 50
+            setProgress({
+              percentage: Math.round(overall),
+              status: `${status} Frame ${index + 1} of ${extracted.frames.length}`,
+            })
+          })
+          frameScans.push({ timestamp: frame.timestamp, text: result.text })
+        }
+
+        const aggregateText = frameScans
+          .filter((frame) => frame.text)
+          .map((frame) => `[${formatTimestamp(frame.timestamp)}]\n${frame.text}`)
+          .join('\n\n')
+        const disclaimerFrames = frameScans.filter((frame) =>
+          hasMultilingualDisclaimer(frame.text),
+        )
+        const videoIssues: ComplianceIssue[] = []
+        const frameIssues = frameScans.flatMap((frame) =>
+          scanCompliance(frame.text).issues.filter((issue) => issue.severity !== 'info').map((issue) => ({
+            ...issue,
+            id: `video-${formatTimestamp(frame.timestamp)}-${issue.id}`,
+            title: `${issue.title} · ${formatTimestamp(frame.timestamp)}`,
+          })),
+        )
+        videoIssues.push(...frameIssues)
+        const disclaimerDuration = disclaimerFrames.length > 1
+          ? Math.max(...disclaimerFrames.map((frame) => frame.timestamp)) -
+            Math.min(...disclaimerFrames.map((frame) => frame.timestamp))
+          : 0
+        if (disclaimerFrames.length > 0 && disclaimerDuration < 3) {
+          videoIssues.push({
+            id: 'video-disclaimer-duration',
+            category: 'missing-disclaimer',
+            severity: 'warning',
+            regulatoryClass: 'disclosure-best-practice',
+            title: 'Video risk disclaimer shown for under 3 seconds',
+            detail: `The disclaimer was detected around ${disclaimerFrames.map((frame) => formatTimestamp(frame.timestamp)).join(', ')}.`,
+            recommendation: 'Keep the statutory risk warning visible and legible for the required duration in the final video.',
+            citation: 'SEBI Master Circular for Mutual Funds, Clause 13.1 and Sixth Schedule.',
+          })
+        }
+        setVideoFrames(frameScans)
+        onVideoScanComplete(aggregateText, videoIssues)
+        setProgress({ percentage: 100, status: 'Video scan complete' })
+        return
+      }
+
       const result = await scanDocument(nextFile, (percentage, status) => {
         setProgress({ percentage, status })
       })
@@ -102,22 +169,44 @@ export function MediaScanner({
         }}
         role="button"
         tabIndex={0}
-        aria-label="Upload a PDF or image for local text extraction"
+        aria-label="Upload a PDF, image, or video for local text extraction"
       >
         <input
           ref={inputRef}
           type="file"
-          accept={SUPPORTED_DOCUMENT_EXTENSIONS.join(',')}
+          accept={`${SUPPORTED_DOCUMENT_EXTENSIONS.join(',')},video/mp4,video/webm,video/quicktime`}
           onChange={handleFileChange}
           hidden
         />
         <span className="dropzone-icon"><UploadCloud size={18} /></span>
         <span className="dropzone-copy">
-          <strong>Drop a PDF or image to scan</strong>
-          <small>or click to browse · PDF, PNG, JPG, WEBP</small>
+          <strong>Drop a PDF, image, or video to scan</strong>
+          <small>or click to browse · PDF, PNG, JPG, WEBP, MP4, WEBM, MOV</small>
         </span>
         <span className="local-badge"><CheckCircle2 size={12} /> On-device</span>
       </div>
+      {isVideo(file) && videoFrames.length > 0 && (
+        <div className="video-timeline" aria-label="Video scan timeline">
+          <div className="preview-heading"><FileText size={14} /><span>Scan timeline</span></div>
+          <div className="timeline-badges">
+            {videoFrames.map((frame) => {
+              const frameHasDisclaimer = hasMultilingualDisclaimer(frame.text)
+              const frameHasIssue = scanCompliance(frame.text).issues.some(
+                (issue) => issue.severity !== 'info',
+              )
+              return (
+                <span
+                  className={`timeline-badge ${frameHasIssue ? 'failed' : frameHasDisclaimer ? 'passed' : 'neutral'}`}
+                  key={frame.timestamp}
+                  title={frame.text || 'No text detected'}
+                >
+                  {formatTimestamp(frame.timestamp)}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {progress && (
         <div className="scan-progress" aria-live="polite">
@@ -147,6 +236,8 @@ export function MediaScanner({
             </div>
             {isImage(file) ? (
               <img src={previewUrl} alt={`Preview of ${file.name}`} />
+            ) : isVideo(file) ? (
+              <video controls src={previewUrl} aria-label={`Preview of ${file.name}`} />
             ) : (
               <iframe title={`Preview of ${file.name}`} src={previewUrl} />
             )}
