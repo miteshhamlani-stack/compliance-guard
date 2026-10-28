@@ -37,22 +37,25 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: sebi-ad-checker/package-lock.json
 
       - name: Set up GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
         run: npm ci
+        working-directory: sebi-ad-checker
 
       - name: Build application
         run: npm run build
+        working-directory: sebi-ad-checker
         env:
           GITHUB_ACTIONS: 'true'
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: sebi-ad-checker/dist
 
   deploy:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
