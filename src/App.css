@@ -274,6 +274,69 @@ main {
   border-color: #cdd4f1;
 }
 
+.scan-mode-selector {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0;
+  margin: 20px 0 12px;
+  border: 0;
+}
+
+.scan-mode-selector legend {
+  align-self: center;
+  margin-right: 4px;
+  color: #9aa4b3;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+.scan-mode-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 154px;
+  padding: 8px 10px;
+  border: 1px solid #e8ebf2;
+  border-radius: 7px;
+  color: #68758a;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.scan-mode-option:hover,
+.scan-mode-option.selected {
+  border-color: #bfc9ee;
+  color: #4258b7;
+  background: #f8f9ff;
+}
+
+.scan-mode-option input {
+  accent-color: #5368c6;
+  margin: 0;
+}
+
+.scan-mode-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.scan-mode-option strong {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.scan-mode-option small {
+  color: #97a2b3;
+  font-size: 8px;
+}
+
+.extracted-copy {
+  background: #f8fafc;
+}
+
 .media-scanner {
   display: grid;
   gap: 10px;
@@ -1516,6 +1579,14 @@ main {
 }
 
 @media (max-width: 700px) {
+  .scan-mode-selector {
+    flex-wrap: wrap;
+  }
+
+  .scan-mode-selector legend {
+    width: 100%;
+  }
+
   .scanner-review {
     grid-template-columns: 1fr;
   }

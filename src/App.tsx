@@ -30,6 +30,8 @@ import {
 import { MediaScanner } from './components/MediaScanner'
 import './App.css'
 
+type ScanMode = 'text' | 'media'
+
 const samples = {
   risky: `WhatsApp exclusive! Get guaranteed returns with our SIP and beat FD rates. This is risk-free and doubles your money. Invest today!`,
   performance: `Our strategy delivered 28% CAGR over 3Y. Invest now to benefit from these impressive returns.`,
@@ -100,6 +102,7 @@ function HighlightedCopy({
 }
 
 function App() {
+  const [scanMode, setScanMode] = useState<ScanMode>('text')
   const [copy, setCopy] = useState('')
   const [ruleset, setRuleset] = useState(REGULATORY_RULESET)
   const [result, setResult] = useState<ReturnType<typeof scanCompliance> | null>(
@@ -329,32 +332,67 @@ function App() {
             )}
           </div>
 
-          <div className="sample-row" aria-label="Enterprise test presets">
-            <span className="sample-label">ENTERPRISE PRESETS</span>
-            {sampleButtons.map((sample) => (
-              <button
-                key={sample.key}
-                type="button"
-                className="sample-button"
-                onClick={() => selectSample(sample.key)}
-              >
-                {sample.label}
-                <ArrowRight size={13} />
-              </button>
-            ))}
-          </div>
+          <fieldset className="scan-mode-selector">
+            <legend>SCAN METHOD</legend>
+            <label className={`scan-mode-option${scanMode === 'text' ? ' selected' : ''}`}>
+              <input
+                type="radio"
+                name="scan-mode"
+                value="text"
+                checked={scanMode === 'text'}
+                onChange={() => setScanMode('text')}
+              />
+              <span>
+                <strong>Text scan</strong>
+                <small>Paste ad copy directly</small>
+              </span>
+            </label>
+            <label className={`scan-mode-option${scanMode === 'media' ? ' selected' : ''}`}>
+              <input
+                type="radio"
+                name="scan-mode"
+                value="media"
+                checked={scanMode === 'media'}
+                onChange={() => setScanMode('media')}
+              />
+              <span>
+                <strong>PDF / image scan</strong>
+                <small>Extract text locally with OCR</small>
+              </span>
+            </label>
+          </fieldset>
 
-          <MediaScanner
-            issues={result?.issues ?? []}
-            onTextExtracted={handleScannedText}
-          />
+          {scanMode === 'text' && (
+            <div className="sample-row" aria-label="Enterprise test presets">
+              <span className="sample-label">ENTERPRISE PRESETS</span>
+              {sampleButtons.map((sample) => (
+                <button
+                  key={sample.key}
+                  type="button"
+                  className="sample-button"
+                  onClick={() => selectSample(sample.key)}
+                >
+                  {sample.label}
+                  <ArrowRight size={13} />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {scanMode === 'media' && (
+            <MediaScanner
+              key="media-scanner"
+              issues={result?.issues ?? []}
+              onTextExtracted={handleScannedText}
+            />
+          )}
 
           <label className="sr-only" htmlFor="ad-copy">
-            Ad-copy to check
+            {scanMode === 'media' ? 'Extracted document text' : 'Ad-copy to check'}
           </label>
           <textarea
             id="ad-copy"
-            className="copy-input"
+            className={`copy-input${scanMode === 'media' ? ' extracted-copy' : ''}`}
             value={copy}
             onChange={(event) => {
               setCopy(event.target.value)
@@ -364,23 +402,28 @@ function App() {
               setCopied(false)
               setCopyError('')
             }}
-            placeholder={`Paste your ad-copy here...\n\nExample: “Start your investment journey with a disciplined approach. Explore mutual fund options that may suit your goals.”`}
+            placeholder={scanMode === 'media'
+              ? 'Extracted text will appear here after scanning...'
+              : `Paste your ad-copy here...\n\nExample: “Start your investment journey with a disciplined approach. Explore mutual fund options that may suit your goals.”`}
             maxLength={10000}
+            readOnly={scanMode === 'media'}
           />
           <div className="input-footer">
             <span>{wordCount} words <span className="count-divider">·</span> {copy.length} / 10,000 characters</span>
             <span className="local-note"><ShieldCheck size={13} /> Your copy stays in this browser</span>
           </div>
-          <button
-            type="button"
-            className="check-button"
-            onClick={runCheck}
-            disabled={!copy.trim()}
-          >
-            <Sparkles size={17} />
-            Check compliance
-            <ArrowRight size={16} />
-          </button>
+          {scanMode === 'text' && (
+            <button
+              type="button"
+              className="check-button"
+              onClick={runCheck}
+              disabled={!copy.trim()}
+            >
+              <Sparkles size={17} />
+              Check compliance
+              <ArrowRight size={16} />
+            </button>
+          )}
         </section>
 
         {result && (
