@@ -212,6 +212,10 @@ function App() {
   }
 
   function selectSample(key: keyof typeof samples) {
+    if (!user) {
+      setIsAuthOpen(true)
+      return
+    }
     setCopy(samples[key])
     setResult(null)
     setAuditedRuleset(null)
@@ -409,11 +413,6 @@ function App() {
               <h2>Review your ad-copy</h2>
               <p>Audit financial creatives, campaign copy, PDFs, images, and video reels.</p>
             </div>
-            {!user && (
-              <button type="button" className="guest-scan-lock" onClick={() => setIsAuthOpen(true)}>
-                🔒 Sign in or register to scan creatives against SEBI &amp; AMFI compliance standards.
-              </button>
-            )}
             {copy && (
               <button
                 type="button"
@@ -519,6 +518,10 @@ function App() {
             className={`copy-input${scanMode !== 'text' ? ' extracted-copy' : ''}`}
             value={copy}
             onChange={(event) => {
+              if (!user) {
+                setIsAuthOpen(true)
+                return
+              }
               setCopy(event.target.value)
               setResult(null)
               setAuditedRuleset(null)

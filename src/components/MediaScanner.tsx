@@ -205,9 +205,22 @@ export function MediaScanner({
         onDragOver={(event) => event.preventDefault()}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => {
+          if (!isAuthenticated) {
+            onAuthRequired()
+            return
+          }
+          inputRef.current?.click()
+        }}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') inputRef.current?.click()
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            if (!isAuthenticated) {
+              onAuthRequired()
+              return
+            }
+            inputRef.current?.click()
+          }
         }}
         role="button"
         tabIndex={0}
