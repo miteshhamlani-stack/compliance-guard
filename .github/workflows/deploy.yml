@@ -39,6 +39,8 @@ jobs:
 
       - name: Set up GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          cname: apps.sbisif.com
 
       - name: Install dependencies
         run: npm install
