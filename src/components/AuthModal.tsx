@@ -5,6 +5,7 @@ import { useAuth, type RegistrationProfile } from '../context/AuthContext'
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
+  message?: string
 }
 
 function authErrorMessage(message: string): string {
@@ -13,7 +14,7 @@ function authErrorMessage(message: string): string {
   return message
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
   const { signInWithEmail, signUpWithEmail } = useAuth()
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', mobile: '', password: '', entityType: 'mfd' as RegistrationProfile['entity_type'] })
@@ -55,6 +56,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </div>
         <h2 id="auth-modal-title">{isSignUp ? 'Create your account' : 'Sign in to your account'}</h2>
         <p className="auth-modal-intro">Authentication is handled securely by Supabase.</p>
+        {message && <p className="auth-required-message" role="status">{message}</p>}
         <form onSubmit={(event) => void submit(event)}>
           {isSignUp && (
             <div className="auth-name-row">

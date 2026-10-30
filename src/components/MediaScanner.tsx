@@ -27,6 +27,8 @@ interface MediaScannerProps {
   onTextExtracted: (text: string, metadata: ScanMetadata) => void
   onVideoScanComplete: (text: string, issues: ComplianceIssue[], metadata: ScanMetadata) => void
   entityType: EntityType
+  isAuthenticated: boolean
+  onAuthRequired: () => void
 }
 
 export interface ScanMetadata {
@@ -52,6 +54,8 @@ export function MediaScanner({
   onTextExtracted,
   onVideoScanComplete,
   entityType,
+  isAuthenticated,
+  onAuthRequired,
 }: MediaScannerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
@@ -71,6 +75,10 @@ export function MediaScanner({
   }, [previewUrl])
 
   async function processFile(nextFile: File) {
+    if (!isAuthenticated) {
+      onAuthRequired()
+      return
+    }
     if (mode === 'video' && !isVideo(nextFile)) {
       setError('Video scan accepts only MP4, WEBM, or MOV files.')
       return

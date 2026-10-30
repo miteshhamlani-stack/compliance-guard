@@ -96,6 +96,22 @@
 .profile-settings-backdrop { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; padding: 20px; background: rgba(23, 36, 59, .48); }
 .profile-settings-modal { position: relative; width: min(390px, 100%); padding: 28px; border: 1px solid #e1e7f0; border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(23, 36, 59, .22); }
 .profile-settings-modal h2 { margin: 8px 0 15px; color: #1b2b47; }
+.guest-scan-lock {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 0 0 16px;
+  color: #3049ae;
+  border: 1px solid #d6dcf6;
+  border-radius: 10px;
+  background: #f3f5ff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+}
+.guest-scan-lock:hover { border-color: #9eace0; background: #edf0ff; }
+.auth-required-message { padding: 10px 12px; margin: 0 0 12px; color: #3049ae; border-radius: 8px; background: #f3f5ff; font-size: 12px; }
 .admin-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; color: #6d3ba8; border: 1px solid #e1c97f; border-radius: 999px; background: linear-gradient(135deg, #fff8dc, #f1e4ff); font-size: 10px; font-weight: 750; }
 .admin-role-switch { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid #dfd6ed; border-radius: 999px; background: #faf8fd; }
 .admin-role-switch button { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; color: #806b94; border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 10px; font-weight: 700; }

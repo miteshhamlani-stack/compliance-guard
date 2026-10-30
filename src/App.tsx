@@ -35,6 +35,7 @@ import { generateComplianceCertificate } from './utils/pdfReportGenerator'
 import { useAuth } from './context/AuthContext'
 import { NavbarUser } from './components/NavbarUser'
 import { OnboardingModal } from './components/OnboardingModal'
+import { AuthModal } from './components/AuthModal'
 import './App.css'
 
 type ScanMode = 'text' | 'document' | 'video'
@@ -112,7 +113,9 @@ function App() {
   const {
     incrementScanCount,
     activeEntityType,
+    user,
   } = useAuth()
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
   const entityType = activeEntityType
   const [scanMode, setScanMode] = useState<ScanMode>('text')
   const [copy, setCopy] = useState('')
@@ -160,6 +163,10 @@ function App() {
   }, [])
 
   function runCheck() {
+    if (!user) {
+      setIsAuthOpen(true)
+      return
+    }
     if (!copy.trim()) return
     setResult(scanCompliance(copy, ruleset, entityType))
     void incrementScanCount()
@@ -291,6 +298,11 @@ function App() {
   return (
     <div className="app-shell">
       <OnboardingModal />
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        message="Sign in or create a free 30-day trial account to audit advertisements."
+      />
       <header className="topbar">
         <a className="brand" href="#top" aria-label="Compliance Guard home">
           <span className="brand-mark">
@@ -397,6 +409,11 @@ function App() {
               <h2>Review your ad-copy</h2>
               <p>Audit financial creatives, campaign copy, PDFs, images, and video reels.</p>
             </div>
+            {!user && (
+              <button type="button" className="guest-scan-lock" onClick={() => setIsAuthOpen(true)}>
+                🔒 Sign in or register to scan creatives against SEBI &amp; AMFI compliance standards.
+              </button>
+            )}
             {copy && (
               <button
                 type="button"
@@ -489,6 +506,8 @@ function App() {
               onTextExtracted={handleScannedText}
               onVideoScanComplete={handleVideoScan}
               entityType={entityType}
+              isAuthenticated={Boolean(user)}
+              onAuthRequired={() => setIsAuthOpen(true)}
             />
           )}
 
