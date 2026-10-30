@@ -191,6 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error('You must be signed in to update your profile.') }
     }
     const nextProfile = { ...profile, ...fields }
+    const previousProfile = profile
+    setProfile(nextProfile as UserProfile)
     const { error } = await supabase.from('user_profiles').upsert({
       id: session.user.id,
       first_name: nextProfile.first_name,
@@ -204,7 +206,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onboarding_completed: nextProfile.onboarding_completed,
       subscription_tier: nextProfile.subscription_tier,
     })
-    if (error) return { error: errorFromUnknown(error, 'Profile update failed.') }
+    if (error) {
+      setProfile(previousProfile)
+      return { error: errorFromUnknown(error, 'Profile update failed.') }
+    }
     setProfile({
       first_name: nextProfile.first_name ?? null,
       last_name: nextProfile.last_name ?? null,
