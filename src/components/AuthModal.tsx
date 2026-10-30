@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth, type RegistrationProfile } from '../context/AuthContext'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -10,65 +10,65 @@ interface AuthModalProps {
 function authErrorMessage(message: string): string {
   if (/invalid login credentials/i.test(message)) return 'Invalid email or password.'
   if (/already registered|already exists/i.test(message)) return 'An account with this email already exists. Try signing in.'
-  if (/password/i.test(message) && /6|short|characters/i.test(message)) return 'Password must be at least 6 characters.'
   return message
 }
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { signInWithEmail, signUpWithEmail } = useAuth()
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', mobile: '', password: '', entityType: 'mfd' as RegistrationProfile['entity_type'] })
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!isOpen) return null
+  const isSignUp = mode === 'sign-up'
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
-    setMessage('')
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
-      return
-    }
+    if (form.password.length < 6) return setError('Password must be at least 6 characters.')
+    if (isSignUp && !/^\d{10}$/.test(form.mobile)) return setError('Mobile number must be exactly 10 digits.')
     setIsSubmitting(true)
-    const result = mode === 'sign-in'
-      ? await signInWithEmail(email.trim(), password)
-      : await signUpWithEmail(email.trim(), password)
+    const result = isSignUp
+      ? await signUpWithEmail(form.email.trim(), form.password, {
+        first_name: form.firstName.trim(),
+        last_name: form.lastName.trim(),
+        mobile: form.mobile,
+        entity_type: form.entityType,
+      })
+      : await signInWithEmail(form.email.trim(), form.password)
     setIsSubmitting(false)
     if (result.error) {
       setError(authErrorMessage(result.error.message))
       return
-    }
-    if (mode === 'sign-up') {
-      setMessage('Account created. Check your email if confirmation is required.')
     }
     onClose()
   }
 
   return (
     <div className="auth-modal-backdrop" role="presentation">
-      <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
-        <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close authentication dialog">
-          <X size={17} />
-        </button>
-        <p className="eyebrow">{mode === 'sign-in' ? 'WELCOME BACK' : 'GET STARTED'}</p>
-        <h2 id="auth-modal-title">{mode === 'sign-in' ? 'Sign in to your account' : 'Create your account'}</h2>
+      <section className={`auth-modal${isSignUp ? ' auth-modal-registration' : ''}`} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <button type="button" className="auth-modal-close" onClick={onClose} aria-label="Close authentication dialog"><X size={17} /></button>
+        <div className="auth-tabs" role="tablist">
+          <button type="button" className={!isSignUp ? 'active' : ''} onClick={() => { setMode('sign-in'); setError('') }}>Sign In</button>
+          <button type="button" className={isSignUp ? 'active' : ''} onClick={() => { setMode('sign-up'); setError('') }}>Create Account</button>
+        </div>
+        <h2 id="auth-modal-title">{isSignUp ? 'Create your account' : 'Sign in to your account'}</h2>
         <p className="auth-modal-intro">Authentication is handled securely by Supabase.</p>
         <form onSubmit={(event) => void submit(event)}>
-          <label className="onboarding-field">Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required /></label>
-          <label className="onboarding-field">Password<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} required /></label>
+          {isSignUp && (
+            <div className="auth-name-row">
+              <label className="onboarding-field">First Name<input value={form.firstName} onChange={(event) => setForm({ ...form, firstName: event.target.value })} required /></label>
+              <label className="onboarding-field">Last Name<input value={form.lastName} onChange={(event) => setForm({ ...form, lastName: event.target.value })} required /></label>
+            </div>
+          )}
+          <label className="onboarding-field">Email<input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} autoComplete="email" required /></label>
+          {isSignUp && <label className="onboarding-field">Mobile Number<input type="tel" inputMode="numeric" pattern="[0-9]{10}" maxLength={10} value={form.mobile} onChange={(event) => setForm({ ...form, mobile: event.target.value.replace(/\D/g, '') })} required /></label>}
+          <label className="onboarding-field">Password<input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={6} autoComplete={isSignUp ? 'new-password' : 'current-password'} required /></label>
+          {isSignUp && <fieldset className="entity-choice"><legend>Entity Type</legend><label className={form.entityType === 'mfd' ? 'selected' : ''}><input type="radio" checked={form.entityType === 'mfd'} onChange={() => setForm({ ...form, entityType: 'mfd' })} /> Mutual Fund Distributor (MFD)</label><label className={form.entityType === 'amc' ? 'selected' : ''}><input type="radio" checked={form.entityType === 'amc'} onChange={() => setForm({ ...form, entityType: 'amc' })} /> Fund House / AMC</label></fieldset>}
           {error && <p className="onboarding-error" role="alert">{error}</p>}
-          {message && <p className="auth-success" role="status">{message}</p>}
-          <button type="submit" className="check-button onboarding-submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : 'Create account'}
-          </button>
+          <button type="submit" className="check-button onboarding-submit" disabled={isSubmitting}>{isSubmitting ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}</button>
         </form>
-        <button type="button" className="auth-mode-toggle" onClick={() => { setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in'); setError(''); setMessage('') }}>
-          {mode === 'sign-in' ? 'Need an account? Create one' : 'Already have an account? Sign in'}
-        </button>
       </section>
     </div>
   )

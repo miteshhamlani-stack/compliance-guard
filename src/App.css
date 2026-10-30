@@ -63,10 +63,33 @@
 .auth-modal { position: relative; width: min(420px, 100%); padding: 30px; border: 1px solid #e1e7f0; border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(23, 36, 59, 0.22); }
 .auth-modal h2 { margin: 8px 0 6px; color: #1b2b47; }
 .auth-modal-intro { margin: 0 0 18px; color: #778398; font-size: 13px; }
+.auth-tabs { display: flex; gap: 18px; margin-bottom: 20px; border-bottom: 1px solid #e6eaf1; }
+.auth-tabs button { padding: 0 0 9px; color: #778398; border: 0; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; }
+.auth-tabs button.active { color: #3049ae; border-bottom-color: #5369d0; }
+.auth-name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.entity-choice { display: grid; gap: 8px; padding: 0; margin: 16px 0 0; border: 0; }
+.entity-choice legend { margin-bottom: 6px; color: #43516a; font-size: 12px; font-weight: 650; }
+.entity-choice label { display: block; padding: 10px; color: #526174; border: 1px solid #dfe5ef; border-radius: 8px; cursor: pointer; font-size: 12px; }
+.entity-choice label.selected { color: #3049ae; border-color: #5369d0; background: #f3f5ff; }
+.entity-choice input { margin-right: 7px; }
 .auth-modal-close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; padding: 6px; color: #778398; border: 0; background: transparent; cursor: pointer; }
 .auth-mode-toggle { width: 100%; margin-top: 14px; padding: 8px; color: #3049ae; border: 0; background: transparent; cursor: pointer; font-size: 12px; }
 .auth-success { color: #35835a; font-size: 12px; }
 .entity-badge { padding: 3px 7px; color: #3049ae; border: 1px solid #d6dcf6; border-radius: 999px; background: #f3f5ff; font-size: 10px; font-weight: 750; letter-spacing: .5px; }
+.user-menu { position: relative; }
+.user-menu-trigger { display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.user-avatar { display: grid; place-items: center; width: 30px; height: 30px; color: #fff; border-radius: 50%; background: linear-gradient(145deg, #435bc4, #7650a5); font-size: 10px; font-weight: 800; }
+.user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; z-index: 15; width: 245px; padding: 14px; border: 1px solid #dfe5ef; border-radius: 12px; background: #fff; box-shadow: 0 14px 35px rgba(23, 36, 59, .16); }
+.user-dropdown-heading { display: grid; gap: 3px; padding-bottom: 10px; }
+.user-dropdown-heading strong { color: #1b2b47; font-size: 13px; }
+.user-dropdown-heading span { overflow: hidden; color: #778398; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.user-role-pill { display: inline-block; padding: 5px 8px; margin-bottom: 10px; color: #3049ae; border-radius: 999px; background: #f1f3ff; font-size: 10px; font-weight: 700; }
+.profile-settings, .sign-out-menu { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 5px; border: 0; background: transparent; cursor: pointer; text-align: left; font-size: 12px; }
+.profile-settings { color: #526174; }
+.sign-out-menu { color: #b13636; }
+.profile-settings:hover { color: #3049ae; }
+.sign-out-menu:hover { color: #8d2424; background: #fff4f4; }
+.user-dropdown-divider { height: 1px; margin: 5px 0; background: #e6eaf1; }
 .admin-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; color: #6d3ba8; border: 1px solid #e1c97f; border-radius: 999px; background: linear-gradient(135deg, #fff8dc, #f1e4ff); font-size: 10px; font-weight: 750; }
 .admin-role-switch { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid #dfd6ed; border-radius: 999px; background: #faf8fd; }
 .admin-role-switch button { display: inline-flex; align-items: center; gap: 3px; padding: 3px 6px; color: #806b94; border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 10px; font-weight: 700; }

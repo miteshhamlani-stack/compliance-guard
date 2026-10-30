@@ -17,6 +17,9 @@ const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAIL || 'mitesh.h.amlani@gmail
   .filter(Boolean)
 
 export interface UserProfile {
+  first_name: string | null
+  last_name: string | null
+  mobile: string | null
   trial_ends_at: string | null
   total_scans: number | null
   entity_type: 'mfd' | 'amc' | null
@@ -24,6 +27,13 @@ export interface UserProfile {
   amc_name: string | null
   onboarding_completed: boolean
   subscription_tier: string | null
+}
+
+export interface RegistrationProfile {
+  first_name: string
+  last_name: string
+  mobile: string
+  entity_type: 'mfd' | 'amc'
 }
 
 interface AuthContextValue {
@@ -37,7 +47,7 @@ interface AuthContextValue {
   isSubscribed: boolean
   totalScans: number
   daysRemainingInTrial: number
-  signUpWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUpWithEmail: (email: string, password: string, registration: RegistrationProfile) => Promise<{ error: Error | null }>
   signInWithEmail: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
   updateProfile: (fields: Partial<UserProfile>) => Promise<{ error: Error | null }>
@@ -71,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (user: User) => {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('trial_ends_at, total_scans, entity_type, arn_number, amc_name, onboarding_completed, subscription_tier')
+      .select('first_name, last_name, mobile, trial_ends_at, total_scans, entity_type, arn_number, amc_name, onboarding_completed, subscription_tier')
       .eq('id', user.id)
       .maybeSingle<UserProfile>()
 
@@ -85,11 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const profileTrialEnd = data?.trial_ends_at ? new Date(data.trial_ends_at) : defaultTrialEnd()
     const nextProfile = {
       trial_ends_at: profileTrialEnd.toISOString(),
+      first_name: data?.first_name ?? (typeof user.user_metadata?.first_name === 'string' ? user.user_metadata.first_name : null),
+      last_name: data?.last_name ?? (typeof user.user_metadata?.last_name === 'string' ? user.user_metadata.last_name : null),
+      mobile: data?.mobile ?? (typeof user.user_metadata?.mobile === 'string' ? user.user_metadata.mobile : null),
       total_scans: data?.total_scans ?? 0,
-      entity_type: data?.entity_type ?? null,
+      entity_type: data?.entity_type ?? (user.user_metadata?.entity_type === 'amc' ? 'amc' : user.user_metadata?.entity_type === 'mfd' ? 'mfd' : null),
       arn_number: data?.arn_number ?? null,
       amc_name: data?.amc_name ?? null,
-      onboarding_completed: data?.onboarding_completed ?? false,
+      onboarding_completed: data?.onboarding_completed ?? Boolean(user.user_metadata?.entity_type),
       subscription_tier: data?.subscription_tier ?? null,
     }
     setProfile(nextProfile)
@@ -99,9 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!data) {
       const { error: insertError } = await supabase.from('user_profiles').upsert({
         id: user.id,
+        first_name: nextProfile.first_name,
+        last_name: nextProfile.last_name,
+        mobile: nextProfile.mobile,
         trial_ends_at: profileTrialEnd.toISOString(),
         total_scans: 0,
-        onboarding_completed: false,
+        onboarding_completed: nextProfile.onboarding_completed,
         subscription_tier: null,
       })
       if (insertError) {
@@ -138,8 +154,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loadProfile])
 
-  const signUpWithEmail = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password })
+  const signUpWithEmail = useCallback(async (email: string, password: string, registration: RegistrationProfile) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: registration },
+    })
+    if (!error && data.session && data.user) {
+      const { error: profileError } = await supabase.from('user_profiles').upsert({
+        id: data.user.id,
+        ...registration,
+        onboarding_completed: true,
+        arn_number: null,
+        amc_name: null,
+        subscription_tier: null,
+        trial_ends_at: defaultTrialEnd().toISOString(),
+        total_scans: 0,
+      })
+      if (profileError) return { error: errorFromUnknown(profileError, 'Account profile setup failed.') }
+    }
     return { error: error ? errorFromUnknown(error, 'Account creation failed.') : null }
   }, [])
 
@@ -160,6 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const nextProfile = { ...profile, ...fields }
     const { error } = await supabase.from('user_profiles').upsert({
       id: session.user.id,
+      first_name: nextProfile.first_name,
+      last_name: nextProfile.last_name,
+      mobile: nextProfile.mobile,
       trial_ends_at: nextProfile.trial_ends_at ?? (trialEndsAt ?? defaultTrialEnd()).toISOString(),
       total_scans: nextProfile.total_scans ?? totalScans,
       entity_type: nextProfile.entity_type,
@@ -170,6 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
     if (error) return { error: errorFromUnknown(error, 'Profile update failed.') }
     setProfile({
+      first_name: nextProfile.first_name ?? null,
+      last_name: nextProfile.last_name ?? null,
+      mobile: nextProfile.mobile ?? null,
       trial_ends_at: nextProfile.trial_ends_at ?? null,
       total_scans: nextProfile.total_scans ?? 0,
       entity_type: nextProfile.entity_type ?? null,
