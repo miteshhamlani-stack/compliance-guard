@@ -9,7 +9,7 @@ function initials(firstName: string | null | undefined, lastName: string | null 
 }
 
 export function NavbarUser() {
-  const { user, profile, isAdmin, daysRemainingInTrial, signOut, updateProfile } = useAuth()
+  const { user, profile, activeEntityType, isAdmin, daysRemainingInTrial, signOut, updateProfile } = useAuth()
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -47,13 +47,13 @@ export function NavbarUser() {
   return (
     <div className="user-menu" ref={menuRef}>
       <button type="button" className="user-menu-trigger" onClick={() => setIsOpen(!isOpen)} aria-expanded={isOpen} aria-haspopup="menu">
-        <span className="user-avatar">{initials(profile?.first_name, profile?.last_name, user.email)}</span>
+        <span className="user-avatar">{initials(profile?.first_name, profile?.last_name, user.email)}{isAdmin && <span className="avatar-admin-mark" title="Admin (Lifetime)"><Crown size={9} /></span>}</span>
         {isAdmin ? <span className="admin-badge"><Crown size={12} /> Admin (Lifetime)</span> : <span className="trial-badge">Trial: {daysRemainingInTrial} days</span>}
       </button>
       {isOpen && <div className="user-dropdown" role="menu">
         <div className="user-dropdown-heading"><strong>{fullName}</strong><span>{user.email}</span>{profile?.mobile && <span>{profile.mobile}</span>}</div>
         <div className="user-role-pill">{profile?.entity_type === 'amc' ? 'Fund House / AMC' : 'Mutual Fund Distributor'}</div>
-        {isAdmin && <div className="admin-role-switch" aria-label="Switch entity view"><button type="button" className={profile?.entity_type === 'mfd' ? 'active' : ''} onClick={() => void switchRole('mfd')}><Shield size={11} /> MFD</button><button type="button" className={profile?.entity_type === 'amc' ? 'active' : ''} onClick={() => void switchRole('amc')}><Shield size={11} /> AMC</button></div>}
+        {isAdmin && <div className="admin-role-switch" aria-label="Switch entity view"><button type="button" className={activeEntityType === 'mfd' ? 'active' : ''} onClick={() => void switchRole('mfd')}><Shield size={11} /> MFD</button><button type="button" className={activeEntityType === 'amc' ? 'active' : ''} onClick={() => void switchRole('amc')}><Shield size={11} /> AMC</button></div>}
         <button type="button" className="profile-settings" role="menuitem" onClick={() => { setIsOpen(false); setProfileError(''); setIsSettingsOpen(true) }}><UserRound size={14} /> Profile Settings</button>
         {profileError && <p className="profile-menu-error" role="alert">{profileError}</p>}
         <div className="user-dropdown-divider" />

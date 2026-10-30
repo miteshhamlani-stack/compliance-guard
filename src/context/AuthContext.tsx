@@ -45,6 +45,7 @@ interface AuthContextValue {
   isTrialActive: boolean
   isAdmin: boolean
   isSubscribed: boolean
+  activeEntityType: 'mfd' | 'amc'
   totalScans: number
   daysRemainingInTrial: number
   signUpWithEmail: (email: string, password: string, registration: RegistrationProfile) => Promise<{ error: Error | null }>
@@ -76,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [trialEndsAt, setTrialEndsAt] = useState<Date | null>(null)
   const [totalScans, setTotalScans] = useState(0)
+  const [activeEntityType, setActiveEntityType] = useState<'mfd' | 'amc'>('mfd')
   const [isLoading, setIsLoading] = useState(Boolean(supabase))
 
   const loadProfile = useCallback(async (user: User) => {
@@ -93,19 +95,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const profileTrialEnd = data?.trial_ends_at ? new Date(data.trial_ends_at) : defaultTrialEnd()
+    const profileEntityType = data?.entity_type ?? (user.user_metadata?.entity_type === 'amc' ? 'amc' : user.user_metadata?.entity_type === 'mfd' ? 'mfd' : null)
+    const isProfileAdmin = ADMIN_EMAILS.includes(user.email?.toLowerCase() ?? '') || data?.subscription_tier === 'admin'
+    const storedAdminEntity = isProfileAdmin
+      ? window.localStorage.getItem('compliance-guard-admin-entity')
+      : null
     const nextProfile = {
       trial_ends_at: profileTrialEnd.toISOString(),
       first_name: data?.first_name ?? (typeof user.user_metadata?.first_name === 'string' ? user.user_metadata.first_name : null),
       last_name: data?.last_name ?? (typeof user.user_metadata?.last_name === 'string' ? user.user_metadata.last_name : null),
       mobile: data?.mobile ?? (typeof user.user_metadata?.mobile === 'string' ? user.user_metadata.mobile : null),
       total_scans: data?.total_scans ?? 0,
-      entity_type: data?.entity_type ?? (user.user_metadata?.entity_type === 'amc' ? 'amc' : user.user_metadata?.entity_type === 'mfd' ? 'mfd' : null),
+      entity_type: profileEntityType,
       arn_number: data?.arn_number ?? null,
       amc_name: data?.amc_name ?? null,
       onboarding_completed: data?.onboarding_completed ?? Boolean(user.user_metadata?.entity_type),
       subscription_tier: data?.subscription_tier ?? null,
     }
     setProfile(nextProfile)
+    setActiveEntityType(
+      storedAdminEntity === 'amc' || storedAdminEntity === 'mfd'
+        ? storedAdminEntity
+        : profileEntityType ?? 'mfd',
+    )
     setTrialEndsAt(profileTrialEnd)
     setTotalScans(data?.total_scans ?? 0)
 
@@ -193,6 +205,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const nextProfile = { ...profile, ...fields }
     const previousProfile = profile
     setProfile(nextProfile as UserProfile)
+    if (fields.entity_type) {
+      setActiveEntityType(fields.entity_type)
+      if (isAdmin) window.localStorage.setItem('compliance-guard-admin-entity', fields.entity_type)
+    }
     const { error } = await supabase.from('user_profiles').upsert({
       id: session.user.id,
       first_name: nextProfile.first_name,
@@ -259,12 +275,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isTrialActive: isAdmin || daysRemaining(trialEndsAt) > 0,
     isAdmin,
     isSubscribed: isAdmin,
+    activeEntityType,
     signUpWithEmail,
     signInWithEmail,
     signOut,
     updateProfile,
     incrementScanCount,
-  }), [session, profile, isLoading, trialEndsAt, totalScans, isAdmin, signUpWithEmail, signInWithEmail, signOut, updateProfile, incrementScanCount])
+  }), [session, profile, isLoading, trialEndsAt, totalScans, isAdmin, activeEntityType, signUpWithEmail, signInWithEmail, signOut, updateProfile, incrementScanCount])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

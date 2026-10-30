@@ -79,6 +79,7 @@
 .user-menu { position: relative; }
 .user-menu-trigger { display: inline-flex; align-items: center; gap: 7px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .user-avatar { display: grid; place-items: center; width: 30px; height: 30px; color: #fff; border-radius: 50%; background: linear-gradient(145deg, #435bc4, #7650a5); font-size: 10px; font-weight: 800; }
+.avatar-admin-mark { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 15px; height: 15px; color: #70479a; border: 2px solid #fff; border-radius: 50%; background: #f5d477; }
 .user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; z-index: 15; width: 245px; padding: 14px; border: 1px solid #dfe5ef; border-radius: 12px; background: #fff; box-shadow: 0 14px 35px rgba(23, 36, 59, .16); }
 .user-dropdown-heading { display: grid; gap: 3px; padding-bottom: 10px; }
 .user-dropdown-heading strong { color: #1b2b47; font-size: 13px; }

@@ -111,9 +111,9 @@ function HighlightedCopy({
 function App() {
   const {
     incrementScanCount,
-    profile,
+    activeEntityType,
   } = useAuth()
-  const entityType = profile?.entity_type ?? 'mfd'
+  const entityType = activeEntityType
   const [scanMode, setScanMode] = useState<ScanMode>('text')
   const [copy, setCopy] = useState('')
   const [ruleset, setRuleset] = useState(REGULATORY_RULESET)
