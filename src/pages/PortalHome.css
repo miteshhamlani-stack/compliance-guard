@@ -1,0 +1,90 @@
+.portal-shell {
+  min-height: 100vh;
+  color: #e6e9f4;
+  background:
+    radial-gradient(circle at 75% -10%, rgba(103, 78, 182, .22), transparent 34rem),
+    radial-gradient(circle at 5% 30%, rgba(41, 79, 156, .13), transparent 30rem),
+    #0b1020;
+}
+
+.portal-header, .portal-main, .portal-footer {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.portal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 82px;
+  border-bottom: 1px solid rgba(173, 183, 219, .12);
+}
+
+.portal-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #f7f8ff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.2px;
+}
+
+.portal-brand-mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: #fff;
+  border: 1px solid rgba(184, 164, 255, .5);
+  border-radius: 9px;
+  background: linear-gradient(145deg, #5863d9, #8b5ed3);
+  box-shadow: 0 0 22px rgba(111, 92, 220, .36);
+  font-size: 15px;
+}
+
+.portal-header-label, .portal-count {
+  color: #8d96b2;
+  font-size: 11px;
+  letter-spacing: .3px;
+}
+
+.portal-main { padding: 88px 0 110px; }
+.portal-hero { max-width: 650px; }
+.portal-eyebrow { margin: 0 0 14px; color: #9c8bf1; font-size: 10px; font-weight: 800; letter-spacing: 1.8px; }
+.portal-hero h1 { margin: 0; color: #f7f8ff; font-size: clamp(42px, 6vw, 70px); font-weight: 720; letter-spacing: -3.2px; line-height: 1.03; }
+.portal-hero h1 span { color: #9380e6; }
+.portal-intro { max-width: 520px; margin: 25px 0 0; color: #9ca6c2; font-size: 16px; line-height: 1.65; }
+.portal-tools { margin-top: 105px; }
+.portal-section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 20px; }
+.portal-section-heading h2 { margin: 0; color: #f7f8ff; font-size: 22px; letter-spacing: -.6px; }
+.portal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.portal-tool-card { position: relative; display: flex; min-height: 300px; flex-direction: column; padding: 24px; color: inherit; border: 1px solid rgba(146, 157, 198, .18); border-radius: 14px; background: rgba(21, 29, 52, .78); text-decoration: none; transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
+.portal-tool-card.is-live:hover { transform: translateY(-5px); border-color: rgba(139, 113, 237, .9); box-shadow: 0 14px 42px rgba(4, 7, 18, .38), 0 0 28px rgba(111, 82, 214, .18); }
+.portal-tool-card.is-planned { border-style: dashed; background: rgba(17, 24, 44, .45); }
+.portal-card-topline { display: flex; align-items: center; justify-content: space-between; }
+.portal-status { display: inline-flex; align-items: center; gap: 6px; color: #818ba8; font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.portal-status.live { color: #73cfad; }
+.portal-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #6d7690; }
+.portal-status.live .portal-status-dot { background: #62cba6; box-shadow: 0 0 10px #62cba6; }
+.portal-arrow { color: #a28ef2; font-size: 20px; }
+.portal-tool-card h3 { margin: 47px 0 10px; color: #f5f6ff; font-size: 20px; letter-spacing: -.5px; }
+.portal-tool-card.is-planned h3 { color: #bec4d7; }
+.portal-tool-card p { margin: 0; color: #9ca6c2; font-size: 13px; line-height: 1.55; }
+.portal-card-detail { max-height: 0; margin-top: 0; overflow: hidden; color: #b6b9d1; font-size: 12px; line-height: 1.55; opacity: 0; transition: max-height 180ms ease, margin 180ms ease, opacity 180ms ease; }
+.portal-tool-card:hover .portal-card-detail { max-height: 90px; margin-top: 18px; opacity: 1; }
+.portal-open-link { margin-top: auto; padding-top: 21px; color: #a995f4; font-size: 12px; font-weight: 750; }
+.portal-open-link span { padding-left: 5px; }
+.portal-footer { display: flex; justify-content: space-between; padding: 20px 0 28px; color: #68728e; border-top: 1px solid rgba(173, 183, 219, .12); font-size: 10px; }
+
+@media (max-width: 760px) {
+  .portal-header, .portal-main, .portal-footer { width: min(100% - 32px, 560px); }
+  .portal-header-label { display: none; }
+  .portal-main { padding-top: 60px; }
+  .portal-hero h1 { letter-spacing: -2px; }
+  .portal-tools { margin-top: 70px; }
+  .portal-grid { grid-template-columns: 1fr; }
+  .portal-tool-card { min-height: 240px; }
+  .portal-footer { display: grid; gap: 8px; }
+}
