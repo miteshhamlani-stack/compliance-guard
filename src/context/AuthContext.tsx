@@ -69,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(Boolean(supabase))
 
   const loadProfile = useCallback(async (user: User) => {
-    if (!supabase) return
     const { data, error } = await supabase
       .from('user_profiles')
       .select('trial_ends_at, total_scans, entity_type, arn_number, amc_name, onboarding_completed, subscription_tier')
@@ -112,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!supabase) return
     let active = true
 
     void supabase.auth.getSession().then(({ data, error }) => {
@@ -141,30 +139,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile])
 
   const signUpWithEmail = useCallback(async (email: string, password: string) => {
-    if (!supabase) {
-      return { error: new Error('Supabase authentication is not configured.') }
-    }
     const { error } = await supabase.auth.signUp({ email, password })
     return { error: error ? errorFromUnknown(error, 'Account creation failed.') : null }
   }, [])
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
-    if (!supabase) {
-      return { error: new Error('Supabase authentication is not configured.') }
-    }
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     return { error: error ? errorFromUnknown(error, 'Sign-in failed.') : null }
   }, [])
 
   const signOut = useCallback(async () => {
-    if (!supabase) return { error: null }
     const { error } = await supabase.auth.signOut()
     return { error: error ? errorFromUnknown(error, 'Sign-out failed.') : null }
   }, [])
 
   const updateProfile = useCallback(async (fields: Partial<UserProfile>) => {
-    if (!supabase || !session?.user) {
-      return { error: new Error('Supabase authentication is not configured.') }
+    if (!session?.user) {
+      return { error: new Error('You must be signed in to update your profile.') }
     }
     const nextProfile = { ...profile, ...fields }
     const { error } = await supabase.from('user_profiles').upsert({
@@ -195,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session?.user?.email &&
       ADMIN_EMAILS.includes(session.user.email.toLowerCase()),
     ) || profile?.subscription_tier === 'admin'
-    if (!supabase || !session?.user || isAdmin) return
+    if (!session?.user || isAdmin) return
     const nextTotal = totalScans + 1
     setTotalScans(nextTotal)
     const { error } = await supabase.from('user_profiles').upsert({
