@@ -1,5 +1,6 @@
 export type IssueCategory = 'high-risk' | 'missing-disclaimer' | 'best-practice'
 export type IssueSeverity = 'critical' | 'warning' | 'info'
+export type EntityType = 'mfd' | 'amc'
 export type RegulatoryClass =
   | 'sebi-violation'
   | 'amfi-advisory'
@@ -72,6 +73,7 @@ export const REGULATORY_RULESET: RegulatoryRuleset = {
     'risk-free',
     'risk free',
     '100% safe',
+    'safe return',
     'capital protection',
     'fixed return',
     'fixed returns',
@@ -293,6 +295,10 @@ function hasDistributorTagline(text: string): boolean {
   return /\bAMFI[-\s]?registered\s+(?:Mutual Fund\s+)?Distributor\b/i.test(text)
 }
 
+function hasRiskometerIndication(text: string): boolean {
+  return /\brisk[-\s]?o[-\s]?meter\b|\brisk[-\s]?ometer\b/i.test(text)
+}
+
 function hasRiaIdentification(text: string): boolean {
   return /\bSEBI[-\s]?registered\s+(?:Investment\s+Adviser|RIA)\b|\bSEBI\s+registration\s+(?:no\.?|number)\s*[:#-]?\s*[A-Z0-9/-]+.{0,50}\bRIA\b/i.test(
     text,
@@ -346,6 +352,7 @@ function buildRewrite(
   source: string,
   issues: ComplianceIssue[],
   rules: RegulatoryRuleset,
+  entityType: EntityType,
 ): string {
   const replacementByTerm: Record<string, string> = {
     'assured returns': 'market-linked returns',
@@ -398,10 +405,9 @@ function buildRewrite(
   const hasClaim = hasPerformanceClaim(source)
   const hasStandardPeriod = hasStandardHorizon(source)
   const hasParity = hasBenchmarkParity(source)
-  const hasEntity =
-    hasArnIdentifier(source) ||
-    hasRegisteredEntity(source) ||
-    hasDistributorTagline(source)
+  const hasEntity = entityType === 'mfd'
+    ? hasArnIdentifier(source) || hasDistributorTagline(source)
+    : hasRegisteredEntity(source)
   const disclosures: string[] = []
 
   if (hasClaim && (!hasStandardPeriod || !hasParity)) {
@@ -425,7 +431,9 @@ function buildRewrite(
   }
   if (!hasEntity) {
     disclosures.push(
-      'Entity disclosure to complete: [add valid ARN, registered entity name, or AMFI-registered Mutual Fund Distributor tagline].',
+      entityType === 'mfd'
+        ? 'Entity disclosure to complete: [add valid ARN or AMFI-registered Mutual Fund Distributor tagline].'
+        : 'Scheme disclosure to complete: [add the registered AMC entity name].',
     )
   }
   if (issues.some((issue) => issue.id.startsWith('advisory-title-'))) {
@@ -443,6 +451,7 @@ function buildRewrite(
 export function scanCompliance(
   text: string,
   rules: RegulatoryRuleset = REGULATORY_RULESET,
+  entityType: EntityType = 'mfd',
 ): ComplianceResult {
   const issues: ComplianceIssue[] = []
   let totalChecks = 0
@@ -468,9 +477,11 @@ export function scanCompliance(
 
   const titleMatches = findPhrases(text, advisoryTitlePhrases)
   const hasRia = hasRiaIdentification(text)
-  totalChecks += 1
-  if (titleMatches.length > 0 && !hasRia) failedChecks += 1
-  if (!hasRia) {
+  if (entityType === 'mfd') {
+    totalChecks += 1
+    if (titleMatches.length > 0 && !hasRia) failedChecks += 1
+  }
+  if (entityType === 'mfd' && !hasRia) {
     addPhraseIssues(
       issues,
       titleMatches,
@@ -596,10 +607,9 @@ export function scanCompliance(
     })
   }
 
-  const hasEntity =
-    hasArnIdentifier(text) ||
-    hasRegisteredEntity(text) ||
-    hasDistributorTagline(text)
+  const hasEntity = entityType === 'mfd'
+    ? hasArnIdentifier(text) || hasDistributorTagline(text)
+    : hasRegisteredEntity(text)
   totalChecks += 1
   if (!hasEntity) {
     failedChecks += 1
@@ -608,11 +618,32 @@ export function scanCompliance(
       category: 'missing-disclaimer',
       severity: 'warning',
       regulatoryClass: 'disclosure-best-practice',
-      title: 'Entity or distributor identification missing',
-      detail: 'No ARN, registered entity details, or AMFI-registered distributor tagline was detected.',
-      recommendation: 'Add the applicable ARN, registered entity name, or AMFI-registered Mutual Fund Distributor identification.',
+      title: entityType === 'mfd' ? 'MFD identification missing' : 'AMC entity disclosure missing',
+      detail: entityType === 'mfd'
+        ? 'No ARN or AMFI-registered distributor tagline was detected.'
+        : 'No registered AMC or asset management company entity name was detected.',
+      recommendation: entityType === 'mfd'
+        ? 'Add the applicable ARN or AMFI-registered Mutual Fund Distributor identification.'
+        : 'Add the registered asset management company name to the scheme communication.',
       citation: citations.entity,
     })
+  }
+
+  if (entityType === 'amc') {
+    totalChecks += 1
+    if (!hasRiskometerIndication(text)) {
+      failedChecks += 1
+      issues.push({
+        id: 'scheme-riskometer',
+        category: 'missing-disclaimer',
+        severity: 'warning',
+        regulatoryClass: 'disclosure-best-practice',
+        title: 'Scheme Risk-o-meter indication missing',
+        detail: 'No Scheme Risk-o-meter indication was detected in this AMC communication.',
+        recommendation: 'Display the applicable Scheme Risk-o-meter indication prominently and keep it current.',
+        citation: citations.disclaimer,
+      })
+    }
   }
 
   if (issues.length === 0) {
@@ -646,6 +677,6 @@ export function scanCompliance(
     issues,
     passedChecks: Math.max(0, totalChecks - failedChecks),
     totalChecks,
-    compliantRewrite: buildRewrite(text, issues, rules),
+    compliantRewrite: buildRewrite(text, issues, rules, entityType),
   }
 }

@@ -47,6 +47,9 @@ jobs:
         run: npm run build
         env:
           GITHUB_ACTIONS: 'true'
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -13,6 +13,8 @@ import {
 } from '../utils/documentScanner'
 import { hasMultilingualDisclaimer, scanCompliance, type ComplianceIssue } from '../utils/complianceEngine'
 import { formatTimestamp, scanVideo } from '../utils/videoScanner'
+import { VideoAuditPlayer, type VideoAuditMarker } from './VideoAuditPlayer'
+import type { EntityType } from '../utils/complianceEngine'
 import {
   validateVideoCompliance,
   type VideoAudioTranscript,
@@ -22,8 +24,15 @@ import {
 interface MediaScannerProps {
   mode: 'document' | 'video'
   issues: ComplianceIssue[]
-  onTextExtracted: (text: string) => void
-  onVideoScanComplete: (text: string, issues: ComplianceIssue[]) => void
+  onTextExtracted: (text: string, metadata: ScanMetadata) => void
+  onVideoScanComplete: (text: string, issues: ComplianceIssue[], metadata: ScanMetadata) => void
+  entityType: EntityType
+}
+
+export interface ScanMetadata {
+  documentName: string
+  mediaType: 'Text' | 'Image' | 'PDF' | 'Video'
+  detectedLanguages: string
 }
 
 function isImage(file: File | null): boolean {
@@ -42,9 +51,9 @@ export function MediaScanner({
   issues,
   onTextExtracted,
   onVideoScanComplete,
+  entityType,
 }: MediaScannerProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [isDragging, setIsDragging] = useState(false)
@@ -53,7 +62,7 @@ export function MediaScanner({
   const [videoFrames, setVideoFrames] = useState<VideoVisualOccurrence[]>([])
   const [audioTranscript, setAudioTranscript] = useState<VideoAudioTranscript | null>(null)
   const [transcriptTab, setTranscriptTab] = useState<'visual' | 'audio'>('visual')
-  const [videoDuration, setVideoDuration] = useState(0)
+  const [videoMarkers, setVideoMarkers] = useState<VideoAuditMarker[]>([])
 
   useEffect(() => {
     return () => {
@@ -78,7 +87,7 @@ export function MediaScanner({
     setError('')
     setVideoFrames([])
     setAudioTranscript(null)
-    setVideoDuration(0)
+    setVideoMarkers([])
     setProgress({ percentage: 0, status: 'Reading file...' })
 
     try {
@@ -86,7 +95,7 @@ export function MediaScanner({
         const scan = await scanVideo(nextFile, (percentage, status) => {
           setProgress({ percentage, status })
         })
-        const report = validateVideoCompliance(scan)
+        const report = validateVideoCompliance(scan, entityType)
         const aggregateText = scan.visualOccurrences
           .filter((frame) => frame.text)
           .map((frame) => `[${formatTimestamp(frame.startTime)}]\n${frame.text}`)
@@ -96,8 +105,43 @@ export function MediaScanner({
           : ''
         setVideoFrames(scan.visualOccurrences)
         setAudioTranscript(scan.audioTranscript)
-        setVideoDuration(scan.duration)
-        onVideoScanComplete(`${aggregateText}${audioText}`, report.issues)
+        setVideoMarkers(scan.visualOccurrences.flatMap((frame) => {
+          const markers: VideoAuditMarker[] = []
+          if (hasMultilingualDisclaimer(frame.text)) {
+            markers.push({
+              id: `disclaimer-${frame.startTime}`,
+              timestamp: frame.startTime,
+              type: 'disclaimer',
+              label: 'Mandatory SEBI disclaimer detected',
+              note: 'Statutory market-risk warning detected in this sampled frame.',
+              detail: frame.text,
+            })
+          }
+          const isTimelineViolation = (id: string): boolean => (
+            id.startsWith('yield-') ||
+            id.startsWith('sip-risk-') ||
+            (id === 'performance-horizon' || id === 'benchmark-parity') &&
+              /\b(?:CAGR|XIRR|return|returns|yield)\b|%/i.test(frame.text)
+          )
+          for (const finding of scanCompliance(frame.text, undefined, entityType).issues.filter((issue) =>
+            issue.severity !== 'info' && isTimelineViolation(issue.id),
+          )) {
+            markers.push({
+              id: `violation-${frame.startTime}-${finding.id}`,
+              timestamp: frame.startTime,
+              type: 'violation',
+              label: finding.title,
+              note: finding.citation,
+              detail: finding.detail,
+            })
+          }
+          return markers
+        }))
+        onVideoScanComplete(`${aggregateText}${audioText}`, report.issues, {
+          documentName: nextFile.name,
+          mediaType: 'Video',
+          detectedLanguages: audioTranscript ? 'Multilingual OCR + audio transcript' : 'Multilingual OCR',
+        })
         setProgress({ percentage: 100, status: 'Video scan complete' })
         return
       }
@@ -108,7 +152,11 @@ export function MediaScanner({
       if (!result.text.trim()) {
         throw new Error('No readable text was detected in this document.')
       }
-      onTextExtracted(result.text)
+      onTextExtracted(result.text, {
+        documentName: nextFile.name,
+        mediaType: nextFile.type === 'application/pdf' || /\.pdf$/i.test(nextFile.name) ? 'PDF' : 'Image',
+        detectedLanguages: result.detectedScript,
+      })
       setProgress({
         percentage: 100,
         status: result.usedOcr
@@ -182,38 +230,6 @@ export function MediaScanner({
           ))}
         </div>
       )}
-      {isVideo(file) && videoFrames.length > 0 && (
-        <div className="video-timeline" aria-label="Video scan timeline">
-          <div className="preview-heading"><FileText size={14} /><span>Scan timeline</span></div>
-          <div className="timeline-badges">
-            {videoFrames.map((frame) => {
-              const frameHasDisclaimer = hasMultilingualDisclaimer(frame.text)
-              const frameHasIssue = scanCompliance(frame.text).issues.some(
-                (issue) => issue.severity !== 'info',
-              )
-              return (
-                <button
-                  type="button"
-                  className={`timeline-badge ${frameHasIssue ? 'failed' : frameHasDisclaimer ? 'passed' : 'neutral'}`}
-                  key={frame.startTime}
-                  title={frame.text || 'No text detected'}
-                  data-time={formatTimestamp(frame.startTime)}
-                  style={{
-                    left: `${videoDuration > 0 ? (frame.startTime / videoDuration) * 100 : 0}%`,
-                    width: `${videoDuration > 0 ? Math.max(2, (frame.durationOnScreen / videoDuration) * 100) : 2}%`,
-                  }}
-                  onClick={() => {
-                    if (videoRef.current) videoRef.current.currentTime = frame.startTime
-                  }}
-                >
-                  {formatTimestamp(frame.startTime)}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {progress && (
         <div className="scan-progress" aria-live="polite">
           {progress.percentage < 100
@@ -243,7 +259,7 @@ export function MediaScanner({
             {isImage(file) ? (
               <img src={previewUrl} alt={`Preview of ${file.name}`} />
             ) : isVideo(file) ? (
-              <video ref={videoRef} controls src={previewUrl} aria-label={`Preview of ${file.name}`} />
+              <VideoAuditPlayer src={previewUrl} markers={videoMarkers} fileName={file.name} />
             ) : (
               <iframe title={`Preview of ${file.name}`} src={previewUrl} />
             )}

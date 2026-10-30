@@ -2,6 +2,7 @@ import {
   hasMultilingualDisclaimer,
   scanCompliance,
   type ComplianceIssue,
+  type EntityType,
 } from './complianceEngine'
 
 export interface VideoVisualOccurrence {
@@ -49,6 +50,7 @@ function issue(
 
 export function validateVideoCompliance(
   input: VideoComplianceInput,
+  entityType: EntityType = 'mfd',
 ): VideoComplianceReport {
   const issues: ComplianceIssue[] = []
   const disclaimerOccurrences = input.visualOccurrences.filter((occurrence) =>
@@ -79,7 +81,7 @@ export function validateVideoCompliance(
   const finalFiveSeconds = input.visualOccurrences.filter(
     (occurrence) => occurrence.startTime >= Math.max(0, input.duration - 5),
   )
-  if (!finalFiveSeconds.some((occurrence) => /AMFI[- ]registered\s*Mutual\s*Fund\s*Distributor/i.test(occurrence.text))) {
+  if (entityType === 'mfd' && !finalFiveSeconds.some((occurrence) => /AMFI[- ]registered\s*Mutual\s*Fund\s*Distributor/i.test(occurrence.text))) {
     issues.push(issue(
       'video-mfd-tagline',
       'AMFI distributor tagline not detected on the end-slate',
@@ -89,7 +91,7 @@ export function validateVideoCompliance(
   }
 
   for (const occurrence of input.visualOccurrences) {
-    for (const finding of scanCompliance(occurrence.text).issues.filter((item) => item.severity !== 'info')) {
+    for (const finding of scanCompliance(occurrence.text, undefined, entityType).issues.filter((item) => item.severity !== 'info')) {
       issues.push({
         ...finding,
         id: `video-visual-${occurrence.startTime}-${finding.id}`,
@@ -108,7 +110,7 @@ export function validateVideoCompliance(
         'Include the applicable spoken statutory risk warning in the voiceover.',
       ))
     }
-    for (const finding of scanCompliance(audio.text).issues.filter((item) => item.severity !== 'info')) {
+    for (const finding of scanCompliance(audio.text, undefined, entityType).issues.filter((item) => item.severity !== 'info')) {
       issues.push({
         ...finding,
         id: `video-audio-${finding.id}`,

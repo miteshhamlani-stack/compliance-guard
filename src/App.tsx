@@ -30,7 +30,11 @@ import {
   type IssueCategory,
   type RegulatoryRuleset,
 } from './utils/complianceEngine'
-import { MediaScanner } from './components/MediaScanner'
+import { MediaScanner, type ScanMetadata } from './components/MediaScanner'
+import { generateComplianceCertificate } from './utils/pdfReportGenerator'
+import { useAuth } from './context/AuthContext'
+import { NavbarUser } from './components/NavbarUser'
+import { OnboardingModal } from './components/OnboardingModal'
 import './App.css'
 
 type ScanMode = 'text' | 'document' | 'video'
@@ -105,6 +109,11 @@ function HighlightedCopy({
 }
 
 function App() {
+  const {
+    incrementScanCount,
+    profile,
+  } = useAuth()
+  const entityType = profile?.entity_type ?? 'mfd'
   const [scanMode, setScanMode] = useState<ScanMode>('text')
   const [copy, setCopy] = useState('')
   const [ruleset, setRuleset] = useState(REGULATORY_RULESET)
@@ -115,6 +124,11 @@ function App() {
     null,
   )
   const [auditedAt, setAuditedAt] = useState<Date | null>(null)
+  const [scanMetadata, setScanMetadata] = useState<ScanMetadata>({
+    documentName: 'Pasted ad copy',
+    mediaType: 'Text',
+    detectedLanguages: 'User-provided text',
+  })
   const [copied, setCopied] = useState(false)
   const [copyError, setCopyError] = useState('')
 
@@ -147,25 +161,39 @@ function App() {
 
   function runCheck() {
     if (!copy.trim()) return
-    setResult(scanCompliance(copy, ruleset))
+    setResult(scanCompliance(copy, ruleset, entityType))
+    void incrementScanCount()
+    setScanMetadata({
+      documentName: 'Pasted ad copy',
+      mediaType: 'Text',
+      detectedLanguages: 'User-provided text',
+    })
     setAuditedRuleset(ruleset)
     setAuditedAt(new Date())
     setCopied(false)
     setCopyError('')
   }
 
-  function handleScannedText(text: string) {
+  function handleScannedText(text: string, metadata: ScanMetadata) {
     setCopy(text)
-    setResult(scanCompliance(text, ruleset))
+    void incrementScanCount()
+    setScanMetadata(metadata)
+    setResult(scanCompliance(text, ruleset, entityType))
     setAuditedRuleset(ruleset)
     setAuditedAt(new Date())
     setCopied(false)
     setCopyError('')
   }
 
-  function handleVideoScan(text: string, detectedIssues: ComplianceIssue[]) {
-    const scanned = scanCompliance(text, ruleset)
+  function handleVideoScan(
+    text: string,
+    detectedIssues: ComplianceIssue[],
+    metadata: ScanMetadata,
+  ) {
+    const scanned = scanCompliance(text, ruleset, entityType)
     setCopy(text)
+    void incrementScanCount()
+    setScanMetadata(metadata)
     setResult({
       ...scanned,
       issues: [...scanned.issues, ...detectedIssues],
@@ -199,10 +227,28 @@ function App() {
           : 'Could not access the clipboard. Check your browser permissions.',
       )
     }
+
   }
 
   function printAudit() {
-    window.print()
+    if (!result || !auditedAt) return
+    const status = result.score >= 85
+      ? 'COMPLIANT'
+      : result.score >= 50
+        ? 'CONDITIONAL_PASS'
+        : 'NON_COMPLIANT'
+    generateComplianceCertificate({
+      ...scanMetadata,
+      score: result.score,
+      status,
+      auditedAt,
+      textExcerpt: copy,
+      findings: result.issues,
+      passedChecks: result.passedChecks,
+      totalChecks: result.totalChecks,
+      rulesetVersion: (auditedRuleset ?? ruleset).version,
+      entityType,
+    })
   }
 
   function statusLabel(score: number): string {
@@ -244,6 +290,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      <OnboardingModal />
       <header className="topbar">
         <a className="brand" href="#top" aria-label="Compliance Guard home">
           <span className="brand-mark">
@@ -317,6 +364,7 @@ function App() {
             <Calendar size={12} />
             Updated: {ruleset.lastUpdated}
           </span>
+          <NavbarUser />
         </div>
       </header>
 
@@ -358,6 +406,11 @@ function App() {
                   setResult(null)
                   setAuditedRuleset(null)
                   setAuditedAt(null)
+                  setScanMetadata({
+                    documentName: 'Pasted ad copy',
+                    mediaType: 'Text',
+                    detectedLanguages: 'User-provided text',
+                  })
                   setCopied(false)
                   setCopyError('')
                 }}
@@ -435,6 +488,7 @@ function App() {
               issues={result?.issues ?? []}
               onTextExtracted={handleScannedText}
               onVideoScanComplete={handleVideoScan}
+              entityType={entityType}
             />
           )}
 
@@ -450,6 +504,11 @@ function App() {
               setResult(null)
               setAuditedRuleset(null)
               setAuditedAt(null)
+              setScanMetadata({
+                documentName: 'Pasted ad copy',
+                mediaType: 'Text',
+                detectedLanguages: 'User-provided text',
+              })
               setCopied(false)
               setCopyError('')
             }}
@@ -518,7 +577,7 @@ function App() {
               <div className="quick-status-grid">
                 {[
                   { key: 'warning' as const, label: 'Mandatory risk warning', icon: ShieldCheck },
-                  { key: 'mfd' as const, label: 'MFD identification', icon: UserRound },
+                  { key: 'mfd' as const, label: entityType === 'mfd' ? 'MFD identification' : 'AMC identification', icon: UserRound },
                   { key: 'prohibited' as const, label: 'Prohibited terms', icon: Ban },
                   { key: 'duration' as const, label: 'Font / duration compliance', icon: Timer },
                 ].map(({ key, label, icon: Icon }) => {
