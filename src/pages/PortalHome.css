@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #166534;
+  color: var(--secondary);
   font-size: 10px;
   font-weight: 750;
   text-transform: uppercase;
@@ -126,7 +126,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--secondary);
 }
 
 .portal-app-status.planned {
@@ -166,9 +166,9 @@
   gap: 8px;
   padding: 0 13px;
   margin-top: auto;
-  color: #fff;
+  color: var(--primary-foreground);
   border-radius: 10px;
-  background: var(--sbisif-navy);
+  background: var(--primary);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -176,25 +176,25 @@
 }
 
 .portal-app-action:hover {
-  background: var(--sbisif-navy-hover);
+  background: color-mix(in oklch, var(--primary) 88%, black);
 }
 
 .portal-app-card-planned {
-  background: #f8fafc;
+  background: var(--background);
 }
 
 .portal-app-card-planned .portal-app-icon {
-  color: #64748b;
+  color: var(--muted-foreground);
   border-color: var(--sbisif-border);
-  background: #f1f5f9;
+  background: var(--muted);
 }
 
 .portal-app-card-planned h3,
 .portal-app-card-planned p,
 .portal-app-card-planned small,
 .planned-action {
-  filter: blur(1.5px);
-  opacity: 0.6;
+  filter: blur(6px);
+  opacity: 0.45;
 }
 
 .planned-action {

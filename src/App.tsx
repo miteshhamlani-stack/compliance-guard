@@ -34,7 +34,7 @@ import { MediaScanner, type ScanMetadata } from './components/MediaScanner'
 import { generateComplianceCertificate } from './utils/pdfReportGenerator'
 import { useAuth } from './context/AuthContext'
 import { NavbarUser } from './components/NavbarUser'
-import { SbisifSuiteLayout } from './components/layout/SbisifSuiteLayout'
+import { ToolShellLayout } from './components/layout/ToolShellLayout'
 import { OnboardingModal } from './components/OnboardingModal'
 import { AuthModal } from './components/AuthModal'
 import './App.css'
@@ -301,7 +301,7 @@ function App() {
   }
 
   return (
-    <SbisifSuiteLayout activeApp="compliance-guard" headerActions={<NavbarUser />}>
+    <ToolShellLayout title="Compliance Guard" headerActions={<NavbarUser />}>
       <OnboardingModal />
       <AuthModal
         isOpen={isAuthOpen}
@@ -782,7 +782,7 @@ function App() {
         </section>
       </div>
       </div>
-    </SbisifSuiteLayout>
+    </ToolShellLayout>
   )
 }
 

@@ -1,0 +1,157 @@
+.tool-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.tool-shell-container {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+.tool-shell-header {
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.tool-shell-header-inner {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 14px;
+}
+
+.tool-shell-logo {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.tool-shell-logo img {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.tool-shell-divider {
+  width: 1px;
+  height: 30px;
+  flex: 0 0 auto;
+  background: var(--border);
+}
+
+.tool-shell-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.tool-shell-privacy {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tool-shell-privacy > span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--secondary);
+}
+
+.tool-shell-main {
+  width: 100%;
+  max-width: none;
+  flex: 1;
+  padding: 24px 0;
+  margin: 0;
+}
+
+.tool-shell-footer {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+}
+
+.tool-shell-footer > div {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+@media (min-width: 640px) {
+  .tool-shell-container {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tool-shell-container {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-shell-header-inner {
+    min-height: 68px;
+    gap: 10px;
+  }
+
+  .tool-shell-title {
+    font-size: 16px;
+  }
+
+  .tool-shell-privacy {
+    max-width: 160px;
+    padding: 0 8px;
+    font-size: 9px;
+  }
+
+  .tool-shell-footer > div {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}

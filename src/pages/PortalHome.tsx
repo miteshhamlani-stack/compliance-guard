@@ -1,5 +1,5 @@
 import { ArrowRight, ArrowUpRight, FileDiff, ShieldCheck } from 'lucide-react'
-import { SbisifSuiteLayout } from '../components/layout/SbisifSuiteLayout'
+import { ToolShellLayout } from '../components/layout/ToolShellLayout'
 import './PortalHome.css'
 
 const applications = [
@@ -25,10 +25,10 @@ const plannedApplications = ['Factsheet Validator', 'Distributor Portal']
 
 export function PortalHome() {
   return (
-    <SbisifSuiteLayout activeApp="all-apps">
+    <ToolShellLayout title="Applications">
       <div className="portal-home">
         <section className="portal-hero">
-          <p className="portal-eyebrow">SBISIF DIGITAL WORKSPACE</p>
+          <p className="portal-eyebrow">DIGITAL WORKSPACE</p>
           <h1>One suite for <span>smarter fund operations.</span></h1>
           <p>
             Purpose-built tools for compliant, efficient investor communication
@@ -74,6 +74,6 @@ export function PortalHome() {
           </div>
         </section>
       </div>
-    </SbisifSuiteLayout>
+    </ToolShellLayout>
   )
 }
