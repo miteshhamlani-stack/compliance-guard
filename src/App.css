@@ -1,9 +1,7 @@
 .app-shell {
-  min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(224, 231, 255, 0.38), transparent 39rem),
-    #f7f9fc;
-  color: #17243b;
+  min-height: 0;
+  background: var(--sbisif-canvas);
+  color: var(--sbisif-text);
 }
 
 .onboarding-backdrop {
@@ -232,7 +230,7 @@ main {
 
 .hero h1 {
   margin: 17px 0 12px;
-  color: #17233a;
+  color: var(--sbisif-navy);
   font-size: clamp(36px, 5vw, 51px);
   line-height: 1.08;
   letter-spacing: -2.35px;
@@ -240,7 +238,7 @@ main {
 }
 
 .hero h1 span {
-  color: #4a5fc3;
+  color: var(--sbisif-accent);
 }
 
 .hero > p {
@@ -272,9 +270,9 @@ main {
 
 .workspace,
 .panel {
-  background: #fff;
-  border: 1px solid #e7ebf2;
-  border-radius: 13px;
+  background: var(--sbisif-surface);
+  border: 1px solid var(--sbisif-border);
+  border-radius: 12px;
   box-shadow: 0 7px 24px rgba(28, 43, 74, 0.045);
 }
 
@@ -294,8 +292,8 @@ main {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  color: #4b60bd;
-  background: #f0f2fd;
+  color: var(--sbisif-navy);
+  background: var(--sbisif-navy-soft);
   border-radius: 10px;
 }
 
@@ -1278,7 +1276,7 @@ main {
 }
 
 .panel {
-  padding: 17px;
+  padding: 24px;
 }
 
 .panel-heading {
@@ -1788,30 +1786,26 @@ main {
 }
 
 :root {
-  --brand-slate: #334155;
-  --brand-navy: #1e293b;
-  --brand-amber: #d97706;
-  --brand-orange: #f97316;
+  --brand-navy: var(--sbisif-navy);
+  --brand-amber: var(--sbisif-accent);
   --brand-amber-soft: #fff7ed;
 }
 
 .app-shell {
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(251, 191, 36, 0.1), transparent 39rem),
-    #f8fafc;
-  color: var(--brand-navy);
+  background: var(--sbisif-canvas);
+  color: var(--sbisif-text);
 }
 
 .brand-mark {
-  background: linear-gradient(145deg, #1e293b, #334155);
-  box-shadow: 0 3px 8px rgba(30, 41, 59, 0.18);
+  background: var(--sbisif-navy);
+  box-shadow: 0 3px 8px rgb(15 41 74 / 18%);
 }
 
 .brand-name,
 .hero h1,
 .section-heading h2,
 .results-heading h2 {
-  color: var(--brand-navy);
+  color: var(--sbisif-navy);
 }
 
 .nav-link:hover,
@@ -1826,26 +1820,29 @@ main {
 
 .alignment-badge {
   color: #9a4f0a;
-  background: var(--brand-amber-soft);
-  border-color: #fed7aa;
+  background: var(--sbisif-navy-soft);
+  border-color: var(--sbisif-navy-border);
 }
 
 .eyebrow,
-.eyebrow-icon,
 .hero h1 span,
-.section-icon,
 .clear-button:hover,
 .sample-button:hover,
 .issue-recommendation,
 .rewrite-topline,
 .rewrite-icon,
 .copy-button {
-  color: var(--brand-amber);
+  color: var(--sbisif-accent);
 }
 
-.eyebrow-icon,
+.eyebrow-icon {
+  color: var(--sbisif-navy);
+  background: var(--sbisif-navy-soft);
+}
+
 .section-icon {
-  background: var(--brand-amber-soft);
+  color: var(--sbisif-navy);
+  background: var(--sbisif-navy-soft);
 }
 
 .sample-button:hover {
@@ -1859,22 +1856,22 @@ main {
 }
 
 .check-button {
-  background: var(--brand-amber);
-  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.18);
+  background: var(--sbisif-navy);
+  box-shadow: 0 4px 10px rgb(15 41 74 / 18%);
 }
 
 .check-button:hover:not(:disabled) {
-  background: var(--brand-orange);
-  box-shadow: 0 6px 13px rgba(249, 115, 22, 0.23);
+  background: var(--sbisif-navy-hover);
+  box-shadow: 0 6px 13px rgb(15 41 74 / 23%);
 }
 
 .scan-again {
-  color: var(--brand-amber);
+  color: var(--sbisif-navy);
 }
 
 .scan-again:hover,
 .copy-button:hover {
-  background: var(--brand-amber-soft);
+  background: var(--sbisif-navy-soft);
 }
 
 .score-card.tone-amber {

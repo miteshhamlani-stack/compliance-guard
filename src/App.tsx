@@ -34,6 +34,7 @@ import { MediaScanner, type ScanMetadata } from './components/MediaScanner'
 import { generateComplianceCertificate } from './utils/pdfReportGenerator'
 import { useAuth } from './context/AuthContext'
 import { NavbarUser } from './components/NavbarUser'
+import { SbisifSuiteLayout } from './components/layout/SbisifSuiteLayout'
 import { OnboardingModal } from './components/OnboardingModal'
 import { AuthModal } from './components/AuthModal'
 import './App.css'
@@ -300,29 +301,16 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <SbisifSuiteLayout activeApp="compliance-guard" headerActions={<NavbarUser />}>
       <OnboardingModal />
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         message="Sign in or create a free 30-day trial account to audit advertisements."
       />
-      <header className="topbar">
-        <a className="brand" href="#top" aria-label="Compliance Guard home">
-          <span className="brand-mark">
-            <ShieldCheck size={20} strokeWidth={2.2} />
-          </span>
-          <span className="brand-name">Compliance Guard</span>
-        </a>
-        <nav className="top-nav" aria-label="Main navigation">
-          <a className="nav-link active" href="#checker">
-            Ad checker
-          </a>
-          <a className="nav-link" href="#how-it-works">
-            How it works
-          </a>
-        </nav>
-        <div className="header-ruleset">
+      <div className="app-shell">
+        <div className="compliance-ruleset-toolbar">
+          <div className="compliance-ruleset-controls">
           <details className="ruleset-details">
             <summary
               className="alignment-badge ruleset-badge"
@@ -380,11 +368,14 @@ function App() {
             <Calendar size={12} />
             Updated: {ruleset.lastUpdated}
           </span>
-          <NavbarUser />
+          </div>
+          <nav className="compliance-section-links" aria-label="Compliance Guard sections">
+            <a href="#checker">Ad checker</a>
+            <a href="#how-it-works">How it works</a>
+          </nav>
         </div>
-      </header>
 
-      <main id="top">
+      <div id="top" className="compliance-main-content">
         <section className="hero">
           <div className="eyebrow">
             <span className="eyebrow-icon"><Shield size={14} /></span>
@@ -789,17 +780,9 @@ function App() {
           </div>
           <a href="#checker" aria-label="Back to checker"><ArrowDown size={16} /></a>
         </section>
-      </main>
-
-      <footer className="site-footer">
-        <a className="brand footer-brand" href="#top">
-          <span className="brand-mark"><ShieldCheck size={16} /></span>
-          <span className="brand-name">Compliance Guard</span>
-        </a>
-        <span>Built for thoughtful investor communication.</span>
-        <span className="footer-privacy"><span className="privacy-dot" /> Nothing uploaded</span>
-      </footer>
-    </div>
+      </div>
+      </div>
+    </SbisifSuiteLayout>
   )
 }
 

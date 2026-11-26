@@ -1,84 +1,79 @@
+import { ArrowRight, ArrowUpRight, FileDiff, ShieldCheck } from 'lucide-react'
+import { SbisifSuiteLayout } from '../components/layout/SbisifSuiteLayout'
 import './PortalHome.css'
 
-const tools = [
+const applications = [
   {
     name: 'Compliance Guard',
-    description: 'SEBI & AMFI advertisement compliance auditing platform for MFDs and AMCs.',
-    expanded: 'Automated pre-release audit for creatives, PDFs, and video reels. Verifies mandatory disclaimers, fonts, performance disclosures, and generates audit certificates.',
+    description: 'Review financial advertising and investor communications before publication.',
+    detail: 'On-device first-pass checks for campaign copy, PDFs, images, and video.',
     href: '/compliance-guard/',
-    live: true,
+    icon: ShieldCheck,
+    status: 'Available',
   },
   {
-    name: 'Factsheet Validator',
-    description: 'Review scheme factsheets and disclosures with confidence.',
-    expanded: 'Planned workspace for validating factsheet data, disclosures, and presentation against current fund-house standards.',
-    href: '#',
-    live: false,
-  },
-  {
-    name: 'Distributor Portal',
-    description: 'A central workspace for distributor communications and approvals.',
-    expanded: 'Planned tools for campaign collaboration, review workflows, and compliance-ready publishing.',
-    href: '#',
-    live: false,
+    name: 'Document Reconciler',
+    description: 'Compare complete lead documents against amendment notices and updates.',
+    detail: 'Private, browser-based reconciliation with reviewed changes and export.',
+    href: '/document-reconciler/',
+    icon: FileDiff,
+    status: 'Available',
   },
 ]
 
+const plannedApplications = ['Factsheet Validator', 'Distributor Portal']
+
 export function PortalHome() {
   return (
-    <div className="portal-shell">
-      <header className="portal-header">
-        <a className="portal-brand" href="/" aria-label="SBISIF Apps Portal home">
-          <span className="portal-brand-mark">S</span>
-          <span>SBISIF Apps Portal</span>
-        </a>
-        <span className="portal-header-label">Financial technology suite</span>
-      </header>
-
-      <main className="portal-main">
+    <SbisifSuiteLayout activeApp="all-apps">
+      <div className="portal-home">
         <section className="portal-hero">
           <p className="portal-eyebrow">SBISIF DIGITAL WORKSPACE</p>
-          <h1>One secure home for<br /><span>smarter fund operations.</span></h1>
-          <p className="portal-intro">Purpose-built applications for compliant, efficient investor communication across the mutual fund ecosystem.</p>
+          <h1>One suite for <span>smarter fund operations.</span></h1>
+          <p>
+            Purpose-built tools for compliant, efficient investor communication
+            across the mutual fund ecosystem.
+          </p>
         </section>
 
-        <section className="portal-tools" aria-labelledby="portal-tools-heading">
+        <section className="portal-applications" aria-labelledby="portal-applications-heading">
           <div className="portal-section-heading">
             <div>
               <p className="portal-eyebrow">YOUR WORKSPACE</p>
-              <h2 id="portal-tools-heading">Applications</h2>
+              <h2 id="portal-applications-heading">Applications</h2>
             </div>
-            <span className="portal-count">01 live · 02 planned</span>
+            <span>2 available · {plannedApplications.length} planned</span>
           </div>
-          <div className="portal-grid">
-            {tools.map((tool) => (
-              <a
-                className={`portal-tool-card${tool.live ? ' is-live' : ' is-planned'}`}
-                href={tool.live ? tool.href : undefined}
-                aria-disabled={!tool.live}
-                key={tool.name}
-              >
-                <div className="portal-card-topline">
-                  <span className={`portal-status${tool.live ? ' live' : ''}`}>
-                    <span className="portal-status-dot" />
-                    {tool.live ? 'Live' : 'Coming soon'}
-                  </span>
-                  {tool.live && <span className="portal-arrow" aria-hidden="true">↗</span>}
+          <div className="portal-app-grid">
+            {applications.map(({ name, description, detail, href, icon: Icon, status }) => (
+              <article className="portal-app-card" key={name}>
+                <div className="portal-app-card-top">
+                  <span className="portal-app-icon"><Icon size={22} /></span>
+                  <span className="portal-app-status"><i />{status}</span>
                 </div>
-                <h3>{tool.name}</h3>
-                <p>{tool.description}</p>
-                <div className="portal-card-detail">{tool.expanded}</div>
-                {tool.live && <span className="portal-open-link">Open application <span>→</span></span>}
-              </a>
+                <h3>{name}</h3>
+                <p>{description}</p>
+                <small>{detail}</small>
+                <a className="portal-app-action" href={href}>
+                  Open application <ArrowUpRight size={15} />
+                </a>
+              </article>
+            ))}
+            {plannedApplications.map((name) => (
+              <article className="portal-app-card portal-app-card-planned" aria-disabled="true" key={name}>
+                <div className="portal-app-card-top">
+                  <span className="portal-app-icon"><FileDiff size={22} /></span>
+                  <span className="portal-app-status planned"><i />Coming soon</span>
+                </div>
+                <h3>{name}</h3>
+                <p>Planned tools for fund operations and distributor workflows.</p>
+                <small>Availability will be announced when the workspace is ready.</small>
+                <span className="portal-app-action planned-action">Coming soon <ArrowRight size={15} /></span>
+              </article>
             ))}
           </div>
         </section>
-      </main>
-
-      <footer className="portal-footer">
-        <span>© {new Date().getFullYear()} SBISIF Apps</span>
-        <span>Internal enterprise workspace · Access subject to applicable permissions and policies.</span>
-      </footer>
-    </div>
+      </div>
+    </SbisifSuiteLayout>
   )
 }
