@@ -53,12 +53,6 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
-      - name: Add GitHub Pages SPA fallback
-        run: |
-          cp ./dist/index.html ./dist/404.html
-          mkdir -p ./dist/document-reconciler
-          cp ./dist/index.html ./dist/document-reconciler/index.html
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
