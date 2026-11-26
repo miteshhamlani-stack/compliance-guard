@@ -1,4 +1,5 @@
 import './PortalHome.css'
+import { ArrowUpRight, FileCheck2, LayoutGrid } from 'lucide-react'
 
 const tools = [
   {
@@ -6,6 +7,13 @@ const tools = [
     description: 'SEBI & AMFI advertisement compliance auditing platform for MFDs and AMCs.',
     expanded: 'Automated pre-release audit for creatives, PDFs, and video reels. Verifies mandatory disclaimers, fonts, performance disclosures, and generates audit certificates.',
     href: '/compliance-guard/',
+    live: true,
+  },
+  {
+    name: 'Document Reconciler',
+    description: 'Zero-cost, 100% browser-private reconciliation for SEBI SID/KIM & custom uploaded Master Circulars.',
+    expanded: 'Review addendums against paired baseline documents with section matching, word-level redlines, approval tracking, and local exports.',
+    href: '/document-reconciler',
     live: true,
   },
   {
@@ -28,16 +36,16 @@ export function PortalHome() {
   return (
     <div className="portal-shell">
       <header className="portal-header">
-        <a className="portal-brand" href="/" aria-label="SBISIF Apps Portal home">
-          <span className="portal-brand-mark">S</span>
-          <span>SBISIF Apps Portal</span>
+        <a className="portal-brand" href="/" aria-label="Apps Portal home">
+          <span className="portal-brand-mark"><LayoutGrid size={16} aria-hidden="true" /></span>
+          <span>Apps Portal</span>
         </a>
         <span className="portal-header-label">Financial technology suite</span>
       </header>
 
       <main className="portal-main">
         <section className="portal-hero">
-          <p className="portal-eyebrow">SBISIF DIGITAL WORKSPACE</p>
+          <p className="portal-eyebrow">DIGITAL WORKSPACE</p>
           <h1>One secure home for<br /><span>smarter fund operations.</span></h1>
           <p className="portal-intro">Purpose-built applications for compliant, efficient investor communication across the mutual fund ecosystem.</p>
         </section>
@@ -48,7 +56,7 @@ export function PortalHome() {
               <p className="portal-eyebrow">YOUR WORKSPACE</p>
               <h2 id="portal-tools-heading">Applications</h2>
             </div>
-            <span className="portal-count">01 live · 02 planned</span>
+            <span className="portal-count">02 live · 02 planned</span>
           </div>
           <div className="portal-grid">
             {tools.map((tool) => (
@@ -63,7 +71,11 @@ export function PortalHome() {
                     <span className="portal-status-dot" />
                     {tool.live ? 'Live' : 'Coming soon'}
                   </span>
-                  {tool.live && <span className="portal-arrow" aria-hidden="true">↗</span>}
+                  {tool.live && (
+                    <span className="portal-arrow" aria-hidden="true">
+                      {tool.name === 'Document Reconciler' ? <FileCheck2 size={18} /> : <ArrowUpRight size={18} />}
+                    </span>
+                  )}
                 </div>
                 <h3>{tool.name}</h3>
                 <p>{tool.description}</p>
@@ -76,7 +88,7 @@ export function PortalHome() {
       </main>
 
       <footer className="portal-footer">
-        <span>© {new Date().getFullYear()} SBISIF Apps</span>
+        <span>© {new Date().getFullYear()} Apps</span>
         <span>Internal enterprise workspace · Access subject to applicable permissions and policies.</span>
       </footer>
     </div>

@@ -27,10 +27,21 @@ For the repository
    Actions**.
 3. Check **Actions** for the `Deploy Compliance Guard to GitHub Pages` workflow.
 
-The production build uses the `/compliance-guard/` base path, while local Vite
-development continues to use `/`. The deployed site should be available at
-`https://miteshhamlani-stack.github.io/compliance-guard/` after a successful
-workflow run.
+The production build and local Vite development both use the site root so the
+Apps Portal and its client-side tools are available on the configured custom
+domain, `https://apps.sbisif.com/`, after a successful workflow run.
+
+## Document Reconciler
+
+Open `/document-reconciler` to compare a lead document with locally parsed
+addendums. PDF, DOCX, TXT, and Markdown files are processed in the browser;
+parsed document text, custom circulars, and review decisions are stored in
+browser local storage. Approved drafts can be exported as DOCX files with a
+CSV audit trail.
+
+The parser keeps all text it extracts and does not OCR image-only PDF pages.
+Review the parsed preview, especially for scanned PDFs, before relying on an
+export.
 
 The rules sync workflow records metadata from configured source pages. It does
 not automatically interpret circulars or change legal rules; regulatory
