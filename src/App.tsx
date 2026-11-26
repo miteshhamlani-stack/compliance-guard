@@ -766,7 +766,32 @@ function App() {
           </section>
         )}
 
-        <section className="trust-note" id="how-it-works">
+        <section className="how-it-works-section" id="how-it-works">
+          <div className="how-it-works-heading">
+            <p className="eyebrow">HOW IT WORKS</p>
+            <h2>From campaign copy to review-ready draft</h2>
+            <p>Run a first-pass review, inspect the findings, and refine your content.</p>
+          </div>
+          <div className="how-it-works-grid">
+            <article className="how-it-works-card">
+              <span className="how-it-works-number">01</span>
+              <h3>Choose an input method</h3>
+              <p>Paste campaign copy or scan a supported document or video to extract text for review.</p>
+            </article>
+            <article className="how-it-works-card">
+              <span className="how-it-works-number">02</span>
+              <h3>Review the first-pass checks</h3>
+              <p>Check flagged wording and disclosure gaps against the configured rules, then inspect the supporting guidance.</p>
+            </article>
+            <article className="how-it-works-card">
+              <span className="how-it-works-number">03</span>
+              <h3>Refine and verify</h3>
+              <p>Update your copy, run the checks again, and export a review summary for your compliance workflow.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="trust-note">
           <div className="trust-icon"><Info size={17} /></div>
           <div>
             <strong>A helpful first pass, not a compliance certificate.</strong>
