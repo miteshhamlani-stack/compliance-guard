@@ -48,7 +48,6 @@
 .portal-section-heading {
   display: flex;
   align-items: end;
-  justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -62,11 +61,6 @@
   color: var(--sbisif-text);
   font-size: 22px;
   letter-spacing: -0.5px;
-}
-
-.portal-section-heading > span {
-  color: var(--sbisif-muted);
-  font-size: 12px;
 }
 
 .portal-app-grid {
@@ -176,11 +170,19 @@
 }
 
 .portal-app-action:hover {
-  background: color-mix(in oklch, var(--primary) 88%, black);
+  background: var(--brand-primary-hover);
 }
 
 .portal-app-card-planned {
+  overflow: hidden;
+  position: relative;
   background: var(--background);
+}
+
+.portal-app-card-planned > * {
+  filter: blur(10px);
+  pointer-events: none;
+  user-select: none;
 }
 
 .portal-app-card-planned .portal-app-icon {
@@ -198,7 +200,7 @@
 .planned-action {
   color: var(--sbisif-muted);
   border: 1px solid var(--sbisif-border);
-  background: #f1f5f9;
+  background: var(--surface-page);
 }
 
 @media (max-width: 1100px) {

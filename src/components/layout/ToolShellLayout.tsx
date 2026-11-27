@@ -13,19 +13,20 @@ export function ToolShellLayout({
 }: ToolShellLayoutProps) {
   return (
     <div className="tool-shell">
+      <div className="tool-shell-accent" aria-hidden="true" />
       <header className="tool-shell-header">
         <div className="tool-shell-container tool-shell-header-inner">
-          <a className="tool-shell-logo" href="/" aria-label="Applications home">
-            <img src={logoSrc} alt="" width="40" height="40" />
-          </a>
-          <span className="tool-shell-divider" aria-hidden="true" />
-          <span className="tool-shell-title">{title}</span>
-          <div className="tool-shell-actions">
-            <span className="tool-shell-privacy" title="Documents are processed locally in your browser.">
-              <span aria-hidden="true" />
-              100% Browser-Private
-            </span>
+          <div className="tool-shell-header-brand">
+            <a className="tool-shell-logo" href="/" aria-label="Applications home">
+              <img src={logoSrc} alt="" width="40" height="40" />
+            </a>
+            <span className="tool-shell-divider" aria-hidden="true" />
+            <span className="tool-shell-title">{title}</span>
           </div>
+          <span className="tool-shell-privacy" title="Documents are processed locally in your browser.">
+            <span aria-hidden="true" />
+            100% Browser-Private · Zero Server
+          </span>
         </div>
       </header>
       <main className="tool-shell-main">

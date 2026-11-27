@@ -2704,7 +2704,7 @@ main {
 
 .app-shell .compliance-section-links {
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
 }
 
 .app-shell .compliance-toolbar-actions {
@@ -2969,7 +2969,7 @@ main {
   .app-shell .compliance-ruleset-controls,
   .app-shell .compliance-section-links,
   .app-shell .compliance-toolbar-actions {
-    gap: 7px;
+    gap: 12px;
   }
 }
 
@@ -2995,4 +2995,77 @@ main {
 
 .app-shell .popover-heading > div > span {
   color: var(--muted-foreground);
+}
+
+.app-shell .check-button:disabled {
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-page);
+}
+
+.app-shell .nav-link.active {
+  color: var(--brand-primary);
+}
+
+.app-shell .nav-link.active::after {
+  background: var(--brand-accent);
+}
+
+.app-shell :is(.sample-button:hover, .clear-button:hover, .copy-button:hover) {
+  color: var(--brand-secondary);
+  border-color: var(--brand-secondary);
+  background: var(--surface-page);
+}
+
+.app-shell :is(.onboarding-option.selected, .entity-choice label.selected) {
+  color: var(--text-primary);
+  border-color: var(--brand-secondary);
+  background: var(--surface-page);
+}
+
+.app-shell .auth-tabs button.active,
+.app-shell .admin-role-switch button.active {
+  color: var(--text-on-primary);
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+}
+
+.app-shell .onboarding-icon {
+  color: var(--brand-primary);
+  background: var(--surface-page);
+}
+
+.app-shell :is(.auth-required-message, .user-role-pill, .trial-badge, .admin-badge) {
+  color: var(--text-primary);
+  border-color: var(--brand-accent);
+  background: var(--surface-page);
+}
+
+.app-shell :is(.executive-status.status-green, .executive-status.status-amber,
+  .executive-status.status-red) {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  background: var(--surface-page);
+}
+
+.app-shell :is(.severity-critical, .severity-warning, .group-missing-disclaimer,
+  .tone-red .score-row strong, .tone-red .score-caption,
+  .tone-amber .score-row strong, .tone-amber .score-caption,
+  .status-icon.critical, .status-icon.warning) {
+  color: var(--text-primary);
+}
+
+.app-shell :is(.score-card, .status-card, .rewrite-card) {
+  border-color: var(--border-subtle);
+  background: var(--surface-card);
+}
+
+.app-shell :is(.score-card.tone-amber, .score-card.tone-red) {
+  border-color: var(--brand-accent);
+  background: var(--surface-page);
+}
+
+.app-shell :is(input, textarea)::placeholder {
+  color: var(--text-secondary);
+  opacity: 1;
 }

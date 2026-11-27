@@ -2,8 +2,14 @@
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text-primary);
+  background: var(--surface-page);
+}
+
+.tool-shell-accent {
+  height: 0.25rem;
+  flex: 0 0 0.25rem;
+  background: var(--brand-accent);
 }
 
 .tool-shell-container {
@@ -15,15 +21,24 @@
 }
 
 .tool-shell-header {
+  height: 4rem;
   position: relative;
   z-index: 10;
-  border-bottom: 1px solid var(--border);
-  background: var(--background);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
 }
 
 .tool-shell-header-inner {
   display: flex;
-  min-height: 76px;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tool-shell-header-brand {
+  display: flex;
+  min-width: 0;
   align-items: center;
   gap: 14px;
 }
@@ -56,19 +71,12 @@
 .tool-shell-title {
   min-width: 0;
   overflow: hidden;
-  color: var(--foreground);
+  color: var(--text-primary);
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.tool-shell-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
 }
 
 .tool-shell-privacy {
@@ -77,10 +85,10 @@
   align-items: center;
   gap: 7px;
   padding: 0 10px;
-  color: var(--secondary);
-  border: 1px solid var(--border);
+  color: var(--brand-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: 999px;
-  background: var(--card);
+  background: var(--surface-page);
   font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
@@ -91,20 +99,22 @@
   height: 7px;
   flex: 0 0 auto;
   border-radius: 50%;
-  background: var(--secondary);
+  background: var(--brand-accent);
 }
 
 .tool-shell-main {
   width: 100%;
   max-width: none;
   flex: 1;
+  min-height: calc(100vh - 4rem);
   padding: 24px 0;
   margin: 0;
+  background: var(--surface-page);
 }
 
 .tool-shell-footer {
-  border-top: 1px solid var(--border);
-  background: var(--background);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-page);
 }
 
 .tool-shell-footer > div {
@@ -113,7 +123,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: var(--muted-foreground);
+  color: var(--text-secondary);
   font-size: 11px;
 }
 
@@ -133,18 +143,21 @@
 
 @media (max-width: 600px) {
   .tool-shell-header-inner {
-    min-height: 68px;
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .tool-shell-header-brand {
+    gap: 8px;
   }
 
   .tool-shell-title {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .tool-shell-privacy {
-    max-width: 160px;
-    padding: 0 8px;
-    font-size: 9px;
+    max-width: 148px;
+    padding: 0 6px;
+    font-size: 8px;
   }
 
   .tool-shell-footer > div {

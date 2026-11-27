@@ -44,7 +44,6 @@ export function PortalHome() {
               <p className="portal-eyebrow">YOUR WORKSPACE</p>
               <h2 id="portal-applications-heading">Applications</h2>
             </div>
-            <span>2 available · {plannedApplications.length} planned</span>
           </div>
           <div className="portal-app-grid">
             {applications.map(({ name, description, detail, href, icon: Icon, status }) => (
