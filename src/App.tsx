@@ -301,7 +301,7 @@ function App() {
   }
 
   return (
-    <ToolShellLayout title="Compliance Guard" headerActions={<NavbarUser />}>
+    <ToolShellLayout title="Compliance Guard">
       <OnboardingModal />
       <AuthModal
         isOpen={isAuthOpen}
@@ -369,10 +369,13 @@ function App() {
             Updated: {ruleset.lastUpdated}
           </span>
           </div>
-          <nav className="compliance-section-links" aria-label="Compliance Guard sections">
-            <a href="#checker">Ad checker</a>
-            <a href="#how-it-works">How it works</a>
-          </nav>
+          <div className="compliance-toolbar-actions">
+            <nav className="compliance-section-links" aria-label="Compliance Guard sections">
+              <a href="#checker">Ad checker</a>
+              <a href="#how-it-works">How it works</a>
+            </nav>
+            <NavbarUser />
+          </div>
         </div>
 
       <div id="top" className="compliance-main-content">

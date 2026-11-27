@@ -10,6 +10,20 @@ npm ci
 npm run dev
 ```
 
+The local Vite server provides the portal at `http://localhost:5173/` and
+Compliance Guard at `http://localhost:5173/compliance-guard/`. To test
+Document Reconciler as well, start its Vite server in a second terminal:
+
+```bash
+cd apps-portal/document-reconciler-app
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
+```
+
+Open `http://localhost:5174/document-reconciler/` (or use its link on the
+local portal home). Do not open the app's HTML files directly with `file://`;
+Vite must serve them over HTTP for routes and assets to work.
+
 The checker loads its rules from `public/rules.json`. If the file cannot be
 loaded, it uses the bundled ruleset.
 

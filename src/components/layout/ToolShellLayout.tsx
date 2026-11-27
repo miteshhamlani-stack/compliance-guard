@@ -5,13 +5,11 @@ import './ToolShellLayout.css'
 interface ToolShellLayoutProps {
   title: string
   children: ReactNode
-  headerActions?: ReactNode
 }
 
 export function ToolShellLayout({
   title,
   children,
-  headerActions,
 }: ToolShellLayoutProps) {
   return (
     <div className="tool-shell">
@@ -23,12 +21,10 @@ export function ToolShellLayout({
           <span className="tool-shell-divider" aria-hidden="true" />
           <span className="tool-shell-title">{title}</span>
           <div className="tool-shell-actions">
-            {headerActions ?? (
-              <span className="tool-shell-privacy" title="Documents are processed locally in your browser.">
-                <span aria-hidden="true" />
-                100% Browser-Private · Zero Server
-              </span>
-            )}
+            <span className="tool-shell-privacy" title="Documents are processed locally in your browser.">
+              <span aria-hidden="true" />
+              100% Browser-Private
+            </span>
           </div>
         </div>
       </header>

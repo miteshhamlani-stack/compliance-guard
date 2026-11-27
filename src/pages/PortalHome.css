@@ -9,7 +9,7 @@
 
 .portal-eyebrow {
   margin: 0 0 10px;
-  color: var(--sbisif-accent);
+  color: var(--sbisif-muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -26,7 +26,7 @@
 }
 
 .portal-hero h1 span {
-  color: var(--sbisif-accent);
+  color: var(--sbisif-navy);
 }
 
 .portal-hero > p:last-child {
@@ -40,7 +40,7 @@
 .portal-applications {
   padding: 26px;
   border: 1px solid var(--sbisif-border);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--sbisif-surface);
   box-shadow: 0 12px 32px rgb(15 41 74 / 5%);
 }
@@ -83,7 +83,7 @@
   flex-direction: column;
   padding: 22px;
   border: 1px solid var(--sbisif-border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--sbisif-surface);
   transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
@@ -191,10 +191,8 @@
 
 .portal-app-card-planned h3,
 .portal-app-card-planned p,
-.portal-app-card-planned small,
-.planned-action {
-  filter: blur(6px);
-  opacity: 0.45;
+.portal-app-card-planned small {
+  color: var(--sbisif-muted);
 }
 
 .planned-action {

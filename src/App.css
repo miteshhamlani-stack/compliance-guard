@@ -341,7 +341,7 @@ main {
 
 .sample-label {
   margin-right: 2px;
-  color: #9aa4b3;
+  color: var(--muted-foreground);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.8px;
@@ -1030,7 +1030,7 @@ main {
 
 .count-divider {
   padding: 0 3px;
-  color: #c5cbd4;
+  color: var(--muted-foreground);
 }
 
 .local-note {
@@ -2686,6 +2686,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
   padding: 0 0 14px;
   margin-bottom: 20px;
@@ -2704,6 +2705,16 @@ main {
 .app-shell .compliance-section-links {
   justify-content: flex-end;
   gap: 8px;
+}
+
+.app-shell .compliance-toolbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .app-shell .compliance-section-links a {
@@ -2807,7 +2818,7 @@ main {
 
 .app-shell .how-it-works-heading .eyebrow {
   margin: 0 0 7px;
-  color: var(--sbisif-accent);
+  color: var(--muted-foreground);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -2829,9 +2840,9 @@ main {
 
 .app-shell .how-it-works-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   align-items: stretch;
-  gap: 16px;
+  gap: 24px;
 }
 
 .app-shell .how-it-works-card {
@@ -2840,10 +2851,16 @@ main {
   min-height: 176px;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px;
+  padding: 24px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--background);
+}
+
+@media (min-width: 768px) {
+  .app-shell .how-it-works-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .app-shell .how-it-works-number {
@@ -2928,6 +2945,12 @@ main {
     justify-content: flex-start;
   }
 
+  .app-shell .compliance-toolbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
   .app-shell .how-it-works-grid {
     grid-template-columns: 1fr;
   }
@@ -2944,7 +2967,32 @@ main {
   }
 
   .app-shell .compliance-ruleset-controls,
-  .app-shell .compliance-section-links {
+  .app-shell .compliance-section-links,
+  .app-shell .compliance-toolbar-actions {
     gap: 7px;
   }
+}
+
+.app-shell :is(p, small, label, li, td, th, .ruleset-updated,
+  .group-description, .audit-stamp, .copy-count, .local-note,
+  [class*="description"], [class*="helper"], [class*="hint"],
+  [class*="intro"], [class*="muted"], [class*="updated"],
+  [class*="caption"], [class*="citation"], [class*="note"]) {
+  color: var(--muted-foreground);
+}
+
+.app-shell :is(h1, h2, h3, h4, strong, legend) {
+  color: var(--foreground);
+}
+
+.app-shell .eyebrow {
+  color: var(--muted-foreground);
+}
+
+.app-shell .hero h1 span {
+  color: var(--foreground);
+}
+
+.app-shell .popover-heading > div > span {
+  color: var(--muted-foreground);
 }

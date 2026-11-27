@@ -15,7 +15,9 @@ const applications = [
     name: 'Document Reconciler',
     description: 'Compare complete lead documents against amendment notices and updates.',
     detail: 'Private, browser-based reconciliation with reviewed changes and export.',
-    href: '/document-reconciler/',
+    href: import.meta.env.DEV
+      ? 'http://localhost:5174/document-reconciler/'
+      : '/document-reconciler/',
     icon: FileDiff,
     status: 'Available',
   },
